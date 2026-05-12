@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTE 2026 - Registro de Suministros</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Open+Sans:wght@400;600;700&display=swap');
+        :root { --gte-blue: #003366; --gte-orange: #FF6600; }
+        body { font-family: 'Open Sans', sans-serif; background-color: #f1f5f9; margin: 0; }
+        h1, h2, h3 { font-family: 'Poppins', sans-serif; }
+        .btn-gte-blue { background-color: var(--gte-blue); color: white; transition: 0.3s; font-weight: 800; border-radius: 12px; }
+        .btn-gte-blue:hover { background-color: var(--gte-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3); }
+        .content-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #gte-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--gte-blue); color: white; padding: 14px 40px; border-radius: 50px; font-weight: 800; font-size: 11px; border: 2px solid var(--gte-orange); z-index: 10000; display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <div id="gte-toast">Registro Exitoso</div>
+
+    <!-- Sidebar Institucional -->
+    <nav class="w-full md:w-80 bg-[#003366] text-white flex flex-col sticky top-0 md:h-screen z-50">
+        <div class="p-10">
+            <h2 class="text-2xl font-black uppercase leading-tight">GUACARA<br><span class="text-gte-orange">TE ESCUCHA</span></h2>
+            <p class="text-[10px] text-gte-orange font-black mt-4 uppercase italic">Módulo de Suministros 2026</p>
+        </div>
+        <div class="flex-grow px-6 space-y-2">
+            <div class="p-4 bg-white/10 rounded-2xl border-l-4 border-gte-orange">
+                <p class="text-[9px] font-black uppercase text-slate-400">Operador Activo</p>
+                <p class="text-sm font-bold">Admin_Suministros</p>
+            </div>
+        </div>
+        <div class="p-8 text-[9px] font-black text-white/20 uppercase text-center tracking-widest">HDC 1991 - GTE 2026</div>
+    </nav>
+
+    <!-- Área de Trabajo -->
+    <main class="flex-grow p-8 md:p-16 overflow-y-auto animate-fade-in">
+        <header class="mb-12">
+            <h2 class="text-4xl font-black text-[#003366] uppercase leading-none">Registro de Pagos</h2>
+            <p class="text-slate-400 font-bold mt-2 italic">Control Maestro de CLAP y Gas Licuado.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <!-- Formulario de Ingesta -->
+            <div class="content-card p-10 border-t-[12px] border-gte-orange">
+                <h3 class="text-xs font-black text-[#003366] uppercase mb-8 tracking-widest border-b pb-4">Nueva Transacción</h3>
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Cédula del Beneficiario</label>
+                        <input type="text" id="cedula" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange" placeholder="V-00.000.000">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Tipo de Suministro</label>
+                        <select id="tipo" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange">
+                            <option value="CLAP">Combo CLAP</option>
+                            <option value="GAS_10KG">Gas 10kg</option>
+                            <option value="GAS_18KG">Gas 18kg</option>
+                            <option value="GAS_43KG">Gas 43kg</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Referencia de Pago</label>
+                        <input type="text" id="referencia" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange" placeholder="Número de confirmación">
+                    </div>
+                    <button onclick="registrarVenta()" class="w-full btn-gte-blue py-5 uppercase text-xs tracking-widest shadow-lg">Confirmar y Guardar</button>
+                </div>
+            </div>
+
+            <!-- Auditoría en Tiempo Real -->
+            <div class="lg:col-span-2 content-card overflow-hidden">
+                <div class="bg-slate-50 p-6 border-b flex justify-between items-center">
+                    <h3 class="text-xs font-black text-[#003366] uppercase tracking-widest">Historial del Día</h3>
+                    <span id="contador" class="bg-[#003366] text-white px-4 py-1 rounded-full text-[10px] font-black">0 REGISTROS</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                <th class="p-6">Timestamp</th>
+                                <th class="p-6">Cédula</th>
+                                <th class="p-6">Suministro</th>
+                                <th class="p-6">Referencia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body" class="divide-y divide-slate-100 font-bold text-slate-600 text-sm">
+                            <!-- Los datos aparecerán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let registros = [];
+
+        function registrarVenta() {
+            const cedula = document.getElementById('cedula').value.trim();
+            const tipo = document.getElementById('tipo').value;
+            const ref = document.getElementById('referencia').value.trim();
+
+            if (!cedula || !ref) {
+                alert("DATOS INCOMPLETOS: Se requiere Cédula y Referencia.");
+                return;
+            }
+
+            const data = {
+                id: Date.now(),
+                time: new Date().toLocaleTimeString(),
+                cedula: cedula.toUpperCase(),
+                tipo: tipo,
+                ref: ref
+            };
+
+            registros.unshift(data); // Insertar al inicio para trazabilidad visual
+            actualizarInterfaz();
+            limpiarForm();
+            showToast("Suministro Sincronizado");
+        }
+
+        function actualizarInterfaz() {
+            const body = document.getElementById('tabla-body');
+            document.getElementById('contador').innerText = `${registros.length} REGISTROS`;
+            
+            body.innerHTML = registros.map(r => `
+                <tr class="hover:bg-slate-50 transition animate-fade-in">
+                    <td class="p-6 text-[10px] text-slate-400">${r.time}</td>
+                    <td class="p-6">${r.cedula}</td>
+                    <td class="p-6">
+                        <span class="bg-orange-50 text-gte-orange px-3 py-1 rounded-lg border border-orange-100 text-[10px]">
+                            ${r.tipo}
+                        </span>
+                    </td>
+                    <td class="p-6 font-mono text-xs">${r.ref}</td>
+                </tr>
+            `).join('');
+        }
+
+        function limpiarForm() {
+            document.getElementById('cedula').value = "";
+            document.getElementById('referencia').value = "";
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('gte-toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+    </script>
+</body>
+</html>
