@@ -80,7 +80,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
-                                <th class="p-6">Timestamp</th>
+                                <th class="p-6">Date</th>
                                 <th class="p-6">Cédula</th>
                                 <th class="p-6">Suministro</th>
                                 <th class="p-6">Referencia</th>
@@ -110,7 +110,7 @@
 
             const data = {
                 id: Date.now(),
-                time: new Date().toLocaleTimeString(),
+                time: new Date().Date.now(),
                 cedula: cedula.toUpperCase(),
                 tipo: tipo,
                 ref: ref
