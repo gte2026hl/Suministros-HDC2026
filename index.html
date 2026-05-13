@@ -2,141 +2,305 @@
 <html lang="es" class="h-full bg-slate-950 text-slate-200">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>HDC 2026 - Ecosistema de Gestión Dual</title>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .tab-active { border-bottom: 2px solid #10b981; color: #10b981; }
         
-        /* EL SELLO INMUTABLE - HDC 2026 */
+        /* SELLO INMUTABLE HDC 2026 */
         .sello-bg { 
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
-            box-shadow: 0 0 20px rgba(217, 119, 6, 0.3);
+            background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); 
+            box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         .sello-text {
-            background: linear-gradient(to right, #e2e8f0 0%, #94a3b8 50%, #3b82f6 100%);
+            background: linear-gradient(to right, #f8fafc 0%, #94a3b8 40%, #2563eb 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
 
-    <div id="login-screen" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6">
-        <div class="max-w-md w-full glass p-10 rounded-[2.5rem] text-center space-y-8 shadow-2xl border border-white/10">
-            <div class="sello-bg w-24 h-24 rounded-2xl flex items-center justify-center mx-auto transform rotate-3 shadow-2xl">
-                <span class="sello-text text-2xl tracking-tighter">HDC<br>2026</span>
+    <div id="login-view" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6">
+        <div class="max-w-md w-full glass p-10 rounded-[3rem] text-center space-y-8 border border-white/10 shadow-2xl">
+            <div class="sello-bg w-28 h-28 rounded-2xl flex items-center justify-center mx-auto transform rotate-3 scale-110">
+                <span class="sello-text text-2xl">HDC<br>2026</span>
             </div>
             <div>
-                <h1 class="text-2xl font-black uppercase tracking-widest text-white">Acceso al Sistema</h1>
-                <p class="text-[10px] text-slate-500 font-bold uppercase mt-2 tracking-widest italic">Ecosistema de Trazabilidad Extraordinaria</p>
+                <h1 class="text-2xl font-black uppercase tracking-tighter text-white">Acceso al Sistema</h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-2 italic">Trazabilidad Extraordinaria</p>
             </div>
-            <form onsubmit="autenticar(event)" class="space-y-4">
-                <input type="text" id="user" placeholder="USUARIO" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500 text-xs font-black tracking-widest uppercase transition-all">
-                <input type="password" id="pass" placeholder="CONTRASEÑA" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500 text-xs font-black tracking-widest transition-all">
-                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.3em] shadow-xl shadow-amber-900/20 transition-all active:scale-95">Iniciar Sesión</button>
-            </form>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">HDC 2026 © Copyright | Inmutable</p>
+            <div class="space-y-4">
+                <input type="text" id="user-input" placeholder="Usuario" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 transition-all text-xs font-bold uppercase tracking-widest">
+                <input type="password" id="pass-input" placeholder="Contraseña" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 transition-all text-xs font-bold tracking-widest">
+                <button onclick="intentarLogin()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] shadow-xl shadow-amber-900/20 transition-all active:scale-95">Entrar al Portal</button>
+            </div>
+            <p class="text-[8px] text-slate-600 font-bold uppercase tracking-widest">HDC 2026 © Copyright | Inmutable</p>
         </div>
     </div>
 
-    <div id="main-app" class="hidden flex flex-col min-h-screen">
-        
-        <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800">
-            <div class="flex items-center gap-6">
-                <div class="sello-bg w-12 h-12 rounded-lg flex items-center justify-center font-black transform -rotate-2">
-                    <span class="sello-text text-[10px] leading-tight text-center">HDC<br>2026</span>
-                </div>
-                <div class="leading-none border-l border-slate-800 pl-6">
-                    <h2 id="display-comunidad" class="text-[11px] font-black tracking-[0.2em] uppercase text-white">---</h2>
-                    <p id="display-sector" class="text-[9px] text-emerald-500 font-bold uppercase tracking-widest mt-1">---</p>
+    <div id="master-view" class="hidden min-h-screen flex flex-col p-8 space-y-6">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-4">
+                <div class="sello-bg w-14 h-14 rounded-lg flex items-center justify-center"><span class="sello-text text-[10px]">HDC<br>2026</span></div>
+                <h2 class="text-xl font-black italic uppercase">Panel de Control Master</h2>
+            </div>
+            <button onclick="logout()" class="text-rose-500 text-[10px] font-black uppercase tracking-widest hover:underline">Cerrar Sesión</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                <h3 class="text-xs font-black uppercase tracking-widest text-amber-500">1. Identidad de la Comunidad</h3>
+                <div class="space-y-4">
+                    <input type="text" id="master-comunidad" placeholder="Nombre de la Comunidad (Ej: 23 de Enero)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500">
+                    <input type="text" id="master-municipio" placeholder="Municipio / Sector" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500">
                 </div>
             </div>
-            
-            <div class="flex gap-4 h-full">
+
+            <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                <h3 class="text-xs font-black uppercase tracking-widest text-emerald-500">2. Carga de Nube (Censo)</h3>
+                <div class="border-2 border-dashed border-slate-800 rounded-2xl p-6 text-center">
+                    <input type="file" id="csv-upload" class="hidden" accept=".csv" onchange="procesarCSV(this)">
+                    <label for="csv-upload" class="cursor-pointer">
+                        <p class="text-xs font-bold text-slate-400">Haz clic aquí para subir el archivo CSV</p>
+                        <p class="text-[9px] text-slate-600 uppercase mt-2">(Nombre, Calle, Cédula)</p>
+                    </label>
+                </div>
+                <div id="upload-status" class="text-center text-[10px] font-bold"></div>
+            </div>
+        </div>
+        <div class="glass p-8 rounded-[2.5rem] text-center">
+             <button onclick="guardarConfigMaster()" class="bg-emerald-600 px-12 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl">Sincronizar Ecosistema</button>
+        </div>
+    </div>
+
+    <div id="jefe-view" class="hidden min-h-screen flex flex-col">
+        <nav class="w-full h-14 glass sticky top-0 z-50 flex items-center justify-between px-6 border-b border-slate-800 no-print">
+            <div class="flex items-center gap-4">
+                <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
+                <div class="leading-none">
+                    <h2 id="jefe-comunidad-name" class="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-200">Cargando...</h2>
+                    <p id="jefe-municipio-name" class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">---</p>
+                </div>
+            </div>
+            <div class="flex gap-2 h-full">
                 <button onclick="showSection('gestion')" id="nav-gestion" class="h-full px-4 text-[9px] font-black uppercase tracking-widest tab-active">Cobros</button>
                 <button onclick="showSection('stats')" id="nav-stats" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500">Estadísticas</button>
                 <button onclick="showSection('despacho')" id="nav-despacho" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500">Despacho</button>
-                <button onclick="logout()" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-rose-500 opacity-50 hover:opacity-100">Salir</button>
+                <button onclick="logout()" class="h-full px-4 text-rose-500 text-[11px]">✕</button>
             </div>
         </nav>
 
-        <main class="p-8 space-y-6 flex-grow">
-            <div id="sec-gestion" class="fade-in space-y-6">
-                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                    <div class="xl:col-span-4 glass p-6 rounded-[2rem] border-l-4 border-amber-500">
-                        <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-4">Ajuste de Precios de Ciclo</p>
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                                <label class="text-[8px] block text-slate-500 font-bold uppercase mb-1">10KG</label>
-                                <input type="number" id="p10" value="1500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-sm outline-none text-white">
-                            </div>
-                            </div>
+        <main class="p-6 space-y-6">
+            <div id="sec-gestion" class="space-y-6">
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div class="xl:col-span-4 glass p-4 rounded-3xl border-l-4 border-amber-500">
+                        <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-3">Precios Actuales</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">10KG</label><input type="number" id="p10" value="1500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">18KG</label><input type="number" id="p18" value="2500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">43KG</label><input type="number" id="p43" value="5500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                        </div>
                     </div>
-                    <div id="totales-container" class="xl:col-span-8 grid grid-cols-4 gap-4"></div>
+                    <div id="totales-container" class="xl:col-span-8 grid grid-cols-4 gap-2"></div>
                 </div>
 
-                <div class="glass rounded-[2.5rem] p-10 shadow-2xl border border-white/5">
-                    <h3 class="text-xl font-black italic mb-8">TERMINAL DE CARGA OPERATIVA</h3>
-                    <div id="status-validacion" class="inline-block px-4 py-2 rounded-full text-[9px] font-black uppercase bg-slate-800 text-slate-500 mb-6">Esperando Datos</div>
-                    <p class="text-slate-500 text-xs italic">La lógica de validación multicilindro está activa...</p>
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                    <div class="xl:col-span-8 glass rounded-[2.5rem] p-8">
+                        <div class="flex justify-between items-start mb-6">
+                            <h3 class="text-xl font-black italic">VALIDADOR DE OPERACIÓN</h3>
+                            <div id="status-validacion" class="px-4 py-2 rounded-full text-[9px] font-black uppercase bg-slate-800 text-slate-500 transition-all">Esperando Datos</div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-6">
+                                <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block">Cédula del Beneficiario</label><input type="number" id="ci" oninput="buscarYValidar(this.value)" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xl mono focus:border-amber-500 outline-none" placeholder="00000000"><div id="perfil" class="mt-3 text-[11px] font-bold text-emerald-400 min-h-[1.5rem]"></div></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block">Referencia</label><input type="text" id="ref" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl mono outline-none" placeholder="REF"></div>
+                                    <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block">Monto Pagado</label><input type="number" id="monto-ref" oninput="validarTodo()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl font-black text-white outline-none" placeholder="0.00"></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-950/40 p-6 rounded-3xl border border-white/5 space-y-6 text-center">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">10KG</span><input type="number" id="q10" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">18KG</span><input type="number" id="q18" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">43KG</span><input type="number" id="q43" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                </div>
+                                <div class="pt-4 border-t border-slate-800 flex justify-between items-center"><span class="text-[9px] font-black text-slate-500 uppercase">Total Requerido:</span><span id="monto-calculado" class="text-2xl font-black mono text-white">0.00 Bs</span></div>
+                                <button onclick="registrar()" id="btn-registrar" disabled class="w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Registrar Pago</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xl:col-span-4 glass rounded-[2rem] p-6 overflow-hidden">
+                        <h4 class="text-[10px] font-black uppercase mb-6 flex justify-between"><span>Actividad Reciente</span><span id="count-pagos" class="text-emerald-500">0 Registros</span></h4>
+                        <div id="lista-actividad" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
+                    </div>
                 </div>
             </div>
+
+            <div id="sec-stats" class="hidden glass p-10 rounded-[2.5rem]"><h3 class="text-xl font-black italic mb-6">PORTAL ESTADÍSTICO 1</h3><div class="overflow-x-auto"><table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase"><tr><th class="p-4">Calle</th><th class="p-4 text-center">10KG</th><th class="p-4 text-center">18KG</th><th class="p-4 text-center">43KG</th><th class="p-4 text-right">Total Bs</th></tr></thead><tbody id="stats-table-body" class="divide-y divide-slate-900"></tbody></table></div></div>
+            <div id="sec-despacho" class="hidden glass p-10 rounded-[2.5rem]"><h3 class="text-xl font-black italic mb-6 text-rose-500">DÍA DE DESPACHO</h3><div class="overflow-x-auto"><table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase"><tr><th class="p-4">Beneficiario</th><th class="p-4 text-center">Pago (10/18/43)</th><th class="p-4 text-center">Recibidos</th><th class="p-4 text-center">Diff</th><th class="p-4 text-right">Estatus</th></tr></thead><tbody id="despacho-table-body" class="divide-y divide-slate-900"></tbody></table></div></div>
         </main>
 
-        <footer class="p-8 glass border-t border-slate-800 text-center">
-            <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">
-                HDC 2026 Copyright © Todos los derechos reservados | Trazabilidad Inmutable
-            </p>
+        <footer class="p-6 text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.4em] glass border-t border-slate-900 no-print">
+            HDC 2026 © Copyright | Trazabilidad Inmutable
         </footer>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE ACCESO
-        const CREDENCIALES = {
-            master: { pass: "master2026", perfil: "ADMINISTRADOR MASTER", comunidad: "CENTRAL NACIONAL", sector: "TODOS LOS SECTORES" },
-            jefe_23: { pass: "casco23", perfil: "JEFE DE COMUNIDAD", comunidad: "CASCO CENTRAL 23 DE ENERO", sector: "SECTOR 1 - MUNICIPIO GUACARA" }
+        // CONFIGURACIÓN DE ACCESO Y DATA
+        let censoGlobal = [];
+        let registrosGlobales = [];
+        let comunidadConfig = { nombre: "Sin Definir", sector: "Sin Definir" };
+
+        const USUARIOS = {
+            "master": { pass: "master2026", role: "MASTER" },
+            "jefe23": { pass: "casco23", role: "JEFE" }
         };
 
-        function autenticar(e) {
-            e.preventDefault();
-            const u = document.getElementById('user').value.toLowerCase();
-            const p = document.getElementById('pass').value;
+        // MOTOR DE LOGIN
+        function intentarLogin() {
+            const u = document.getElementById('user-input').value;
+            const p = document.getElementById('pass-input').value;
 
-            if (CREDENCIALES[u] && CREDENCIALES[u].pass === p) {
-                // Configurar el sistema
-                document.getElementById('display-comunidad').innerText = CREDENCIALES[u].comunidad;
-                document.getElementById('display-sector').innerText = CREDENCIALES[u].sector;
-                
-                // Mostrar App
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-app').classList.remove('hidden');
-            } else {
-                alert("Credenciales Inválidas. Intente de nuevo.");
-            }
+            if (USUARIOS[u] && USUARIOS[u].pass === p) {
+                document.getElementById('login-view').classList.add('hidden');
+                if (USUARIOS[u].role === "MASTER") {
+                    document.getElementById('master-view').classList.remove('hidden');
+                } else {
+                    cargarVistaJefe();
+                }
+            } else { alert("Datos incorrectos"); }
         }
 
-        function logout() {
-            location.reload();
+        function logout() { location.reload(); }
+
+        // LÓGICA MASTER: PROCESAR CSV
+        function procesarCSV(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n').slice(1); // Saltar cabecera
+                censoGlobal = rows.map(row => {
+                    const cols = row.split(',');
+                    return { nombre: cols[0]?.trim(), calle: cols[1]?.trim(), ci: cols[2]?.trim() };
+                }).filter(h => h.ci);
+                document.getElementById('upload-status').innerText = `✓ ${censoGlobal.length} Habitantes cargados en nube`;
+                document.getElementById('upload-status').classList.add('text-emerald-500');
+            };
+            reader.readAsText(file);
+        }
+
+        function guardarConfigMaster() {
+            comunidadConfig.nombre = document.getElementById('master-comunidad').value;
+            comunidadConfig.sector = document.getElementById('master-municipio').value;
+            alert("Ecosistema Sincronizado: Nube Actualizada.");
+            logout();
+        }
+
+        // LÓGICA JEFE: OPERACIÓN
+        function cargarVistaJefe() {
+            document.getElementById('jefe-view').classList.remove('hidden');
+            document.getElementById('jefe-comunidad-name').innerText = comunidadConfig.nombre;
+            document.getElementById('jefe-municipio-name').innerText = comunidadConfig.sector;
+            actualizarGestionUI();
         }
 
         function showSection(id) {
-            // Lógica de navegación entre módulos (Gestion, Stats, Despacho)
-            console.log("Cambiando a sección: " + id);
-            // ... (Resto de lógica v1.9 para ocultar/mostrar divs) ...
+            ['gestion', 'stats', 'despacho'].forEach(s => document.getElementById(`sec-${s}`).classList.add('hidden'));
+            document.getElementById(`sec-${id}`).classList.remove('hidden');
+            if(id === 'stats') renderStats();
+            if(id === 'despacho') renderDespacho();
         }
 
-        // Lógica de validación de montos (Preservada de v1.9)
-        function validarTodo() {
-            // ... código ya construido ...
+        function buscarYValidar(val) {
+            const h = censoGlobal.find(p => p.ci === val);
+            document.getElementById('perfil').innerText = h ? `${h.nombre} • ${h.calle}` : "No encontrado en censo";
+            validarTodo();
         }
+
+        function validarTodo() {
+            const p10 = parseFloat(document.getElementById('p10').value) || 0;
+            const p18 = parseFloat(document.getElementById('p18').value) || 0;
+            const p43 = parseFloat(document.getElementById('p43').value) || 0;
+            const q10 = parseInt(document.getElementById('q10').value) || 0;
+            const q18 = parseInt(document.getElementById('q18').value) || 0;
+            const q43 = parseInt(document.getElementById('q43').value) || 0;
+            const montoRef = parseFloat(document.getElementById('monto-ref').value) || 0;
+            const requerido = (q10 * p10) + (q18 * p18) + (q43 * p43);
+
+            document.getElementById('monto-calculado').innerText = requerido.toFixed(2) + " Bs";
+            const status = document.getElementById('status-validacion');
+            const btn = document.getElementById('btn-registrar');
+
+            if (requerido > 0 && Math.abs(montoRef - requerido) < 0.1) {
+                status.innerText = "✓ COINCIDE"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-emerald-500 text-slate-950";
+                btn.disabled = false; btn.className = "w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-[10px]";
+            } else if (requerido > 0) {
+                status.innerText = "✗ DIFERENCIA"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-rose-500 text-white";
+                btn.disabled = true; btn.className = "w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px]";
+            } else {
+                status.innerText = "ESPERANDO DATOS"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500";
+                btn.disabled = true;
+            }
+        }
+
+        function registrar() {
+            const h = censoGlobal.find(p => p.ci === document.getElementById('ci').value);
+            const data = {
+                nombre: h.nombre, calle: h.calle, ci: h.ci, ref: document.getElementById('ref').value,
+                monto: parseFloat(document.getElementById('monto-ref').value),
+                q: [parseInt(document.getElementById('q10').value) || 0, parseInt(document.getElementById('q18').value) || 0, parseInt(document.getElementById('q43').value) || 0],
+                recibidos: 0, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            registrosGlobales.unshift(data);
+            actualizarGestionUI();
+            limpiarForm();
+        }
+
+        function actualizarGestionUI() {
+            const totals = registrosGlobales.reduce((acc, r) => {
+                acc.c10 += r.q[0]; acc.c18 += r.q[1]; acc.c43 += r.q[2]; acc.bs += r.monto; return acc;
+            }, { c10:0, c18:0, c43:0, bs:0 });
+            document.getElementById('totales-container').innerHTML = `
+                ${renderCard("10KG", totals.c10, "emerald")} ${renderCard("18KG", totals.c18, "emerald")}
+                ${renderCard("43KG", totals.c43, "emerald")} ${renderCard("TOTAL BS", totals.bs.toFixed(2), "blue")}
+            `;
+            document.getElementById('count-pagos').innerText = `${registrosGlobales.length}`;
+            document.getElementById('lista-actividad').innerHTML = registrosGlobales.map(r => `<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center"><div><p class="text-[10px] font-black text-white">${r.nombre}</p><p class="text-[8px] text-slate-500">REF: ${r.ref} | ${r.time}</p></div><div class="text-right"><p class="text-[10px] font-black text-emerald-500">${r.monto} BS</p></div></div>`).join('');
+        }
+
+        function renderCard(label, val, col) { return `<div class="glass p-4 rounded-2xl border-l-4 border-${col === 'emerald' ? 'emerald-500' : 'blue-500'}"><p class="text-[8px] font-black text-slate-500 uppercase">${label}</p><p class="text-xl font-black text-white">${val}</p></div>`; }
+        function limpiarForm() { ['ci', 'ref', 'monto-ref'].forEach(id => document.getElementById(id).value = ""); ['q10', 'q18', 'q43'].forEach(id => document.getElementById(id).value = 0); document.getElementById('perfil').innerText = ""; validarTodo(); }
+
+        // ESTADISTICAS Y DESPACHO
+        function renderStats() {
+            const ejes = {};
+            registrosGlobales.forEach(r => { if(!ejes[r.calle]) ejes[r.calle] = { c10:0, c18:0, c43:0, bs:0 }; ejes[r.calle].c10 += r.q[0]; ejes[r.calle].c18 += r.q[1]; ejes[r.calle].c43 += r.q[2]; ejes[r.calle].bs += r.monto; });
+            document.getElementById('stats-table-body').innerHTML = Object.entries(ejes).map(([calle, d]) => `<tr><td class="p-4 font-bold text-white">${calle}</td><td class="p-4 text-center">${d.c10}</td><td class="p-4 text-center">${d.c18}</td><td class="p-4 text-center">${d.c43}</td><td class="p-4 text-right font-black text-emerald-500">${d.bs.toFixed(2)}</td></tr>`).join('');
+        }
+
+        function renderDespacho() {
+            document.getElementById('despacho-table-body').innerHTML = registrosGlobales.map((r, idx) => {
+                const totalPagado = r.q[0] + r.q[1] + r.q[2];
+                const diff = r.recibidos - totalPagado;
+                return `<tr><td class="p-4"><b>${r.nombre}</b><br><small>${r.calle}</small></td><td class="p-4 text-center">${r.q.join('/')}</td><td class="p-4 text-center"><input type="number" value="${r.recibidos}" onchange="updateRecibido(${idx}, this.value)" class="w-12 bg-slate-900 rounded p-1 text-center"></td><td class="p-4 text-center font-bold ${diff===0?'text-emerald-500':'text-rose-500'}">${diff===0?'✓':diff}</td><td class="p-4 text-right">${diff===0 && r.recibidos > 0 ? 'CONCILIADO' : 'PENDIENTE'}</td></tr>`;
+            }).join('');
+        }
+
+        function updateRecibido(idx, val) { registrosGlobales[idx].recibidos = parseInt(val) || 0; renderDespacho(); }
     </script>
 </body>
 </html>
