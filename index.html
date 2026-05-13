@@ -4,25 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <title>HDC 2026 - Ecosistema de Gestión Dual</title>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         
-        /* ESTADO ACTIVO DE NAVEGACIÓN */
-        .tab-active { 
-            border-bottom: 2px solid #10b981; 
-            color: #10b981; 
-            background: rgba(16, 185, 129, 0.05);
-        }
+        /* Clase de sombreado/activa corregida */
+        .tab-active { border-bottom: 2px solid #10b981 !important; color: #10b981 !important; opacity: 1 !important; }
         
-        /* EL SELLO INMUTABLE */
+        /* SELLO INMUTABLE HDC 2026 */
         .sello-bg { 
             background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); 
-            box-shadow: 0 4px 20px rgba(180, 83, 9, 0.4);
+            box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
         .sello-text {
@@ -31,11 +27,11 @@
             -webkit-text-fill-color: transparent;
             font-weight: 900;
             line-height: 1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
@@ -44,6 +40,10 @@
         <div class="max-w-md w-full glass p-10 rounded-[3rem] text-center space-y-8 border border-white/10 shadow-2xl">
             <div class="sello-bg w-28 h-28 rounded-2xl flex items-center justify-center mx-auto transform rotate-3 scale-110">
                 <span class="sello-text text-2xl">HDC<br>2026</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-tighter text-white">Acceso al Sistema</h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-2 italic">Trazabilidad Extraordinaria</p>
             </div>
             <div class="space-y-4">
                 <input type="text" id="user-input" placeholder="Usuario" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 transition-all text-xs font-bold uppercase tracking-widest">
@@ -54,77 +54,67 @@
         </div>
     </div>
 
-    <div id="master-view" class="hidden min-h-screen flex flex-col">
-        <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-6 border-b border-slate-800">
+    <div id="master-view" class="hidden min-h-screen flex flex-col p-8 space-y-6">
+        <div class="flex justify-between items-center mb-8">
             <div class="flex items-center gap-4">
-                <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
-                <h2 class="text-[10px] font-black tracking-widest uppercase">Panel Master</h2>
+                <div class="sello-bg w-14 h-14 rounded-lg flex items-center justify-center"><span class="sello-text text-[10px]">HDC<br>2026</span></div>
+                <h2 class="text-xl font-black italic uppercase">Panel de Control Master</h2>
             </div>
-            <div class="flex gap-1 h-full">
-                <button onclick="showMasterSection('m-config')" id="nav-m-config" class="h-full px-6 text-[9px] font-black uppercase tracking-widest tab-active">Carga de Datos</button>
-                <button onclick="showMasterSection('m-stats')" id="nav-m-stats" class="h-full px-6 text-[9px] font-black uppercase tracking-widest text-slate-500">Estadísticas Globales</button>
-                <button onclick="logout()" class="h-full px-4 text-rose-500 text-xs">✕</button>
-            </div>
-        </nav>
+            <button onclick="logout()" class="text-rose-500 text-[10px] font-black uppercase tracking-widest hover:underline">Cerrar Sesión</button>
+        </div>
 
-        <main class="p-8 space-y-6 flex-grow">
-            <div id="sec-m-config" class="fade-in space-y-8">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="glass p-8 rounded-[2.5rem] space-y-6">
-                        <h3 class="text-xs font-black uppercase tracking-widest text-amber-500">1. Identidad Territorial</h3>
-                        <div class="space-y-4">
-                            <input type="text" id="master-comunidad" placeholder="Comunidad (Ej: Casco Central 23 de Enero)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500 text-sm">
-                            <input type="text" id="master-municipio" placeholder="Municipio / Sector" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500 text-sm">
-                        </div>
-                    </div>
-                    <div class="glass p-8 rounded-[2.5rem] space-y-6">
-                        <h3 class="text-xs font-black uppercase tracking-widest text-emerald-500">2. Carga Excel (.xlsx)</h3>
-                        <div class="border-2 border-dashed border-slate-800 rounded-3xl p-10 text-center">
-                            <input type="file" id="excel-upload" class="hidden" accept=".xlsx, .xls" onchange="handleExcel(this)">
-                            <label for="excel-upload" class="cursor-pointer">
-                                <div class="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                                </div>
-                                <p id="excel-status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Subir Archivo de Habitantes</p>
-                            </label>
-                        </div>
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                <h3 class="text-xs font-black uppercase tracking-widest text-amber-500">1. Identidad de la Comunidad</h3>
+                <div class="space-y-4">
+                    <input type="text" id="master-comunidad" placeholder="Nombre de la Comunidad (Ej: 23 de Enero)" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500">
+                    <input type="text" id="master-municipio" placeholder="Municipio / Sector" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl outline-none focus:border-amber-500">
                 </div>
-                <div class="text-center"><button onclick="sincronizar()" class="bg-emerald-600 px-12 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl">Sincronizar Ecosistema</button></div>
             </div>
-            
-            <div id="sec-m-stats" class="hidden fade-in glass p-10 rounded-[2.5rem]">
-                <h3 class="text-xl font-black italic uppercase">Auditoría en Tiempo Real</h3>
-                <p class="text-slate-500 text-xs mt-2">Vista del total acumulado por el sistema Master.</p>
+
+            <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                <h3 class="text-xs font-black uppercase tracking-widest text-emerald-500">2. Carga de Nube (Excel)</h3>
+                <div class="border-2 border-dashed border-slate-800 rounded-2xl p-6 text-center">
+                    <input type="file" id="excel-upload" class="hidden" accept=".xlsx, .xls" onchange="procesarExcel(this)">
+                    <label for="excel-upload" class="cursor-pointer">
+                        <p class="text-xs font-bold text-slate-400">Haz clic aquí para subir el archivo EXCEL</p>
+                        <p class="text-[9px] text-slate-600 uppercase mt-2">(Columnas: Nombre, Calle, Cédula)</p>
+                    </label>
+                </div>
+                <div id="upload-status" class="text-center text-[10px] font-bold"></div>
             </div>
-        </main>
+        </div>
+        <div class="glass p-8 rounded-[2.5rem] text-center">
+             <button onclick="guardarConfigMaster()" class="bg-emerald-600 px-12 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl">Sincronizar Ecosistema</button>
+        </div>
     </div>
 
     <div id="jefe-view" class="hidden min-h-screen flex flex-col">
-        <nav class="w-full h-14 glass sticky top-0 z-50 flex items-center justify-between px-6 border-b border-slate-800">
+        <nav class="w-full h-14 glass sticky top-0 z-50 flex items-center justify-between px-6 border-b border-slate-800 no-print">
             <div class="flex items-center gap-4">
                 <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
                 <div class="leading-none">
-                    <h2 id="disp-comunidad" class="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-200">---</h2>
-                    <p id="disp-sector" class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">---</p>
+                    <h2 id="jefe-comunidad-name" class="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-200">Cargando...</h2>
+                    <p id="jefe-municipio-name" class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">---</p>
                 </div>
             </div>
-            <div class="flex gap-1 h-full">
-                <button onclick="showJefeSection('gestion')" id="nav-gestion" class="h-full px-6 text-[9px] font-black uppercase tracking-widest tab-active transition-all">Cobros</button>
-                <button onclick="showJefeSection('stats')" id="nav-stats" class="h-full px-6 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-all">Estadísticas</button>
-                <button onclick="showJefeSection('despacho')" id="nav-despacho" class="h-full px-6 text-[9px] font-black uppercase tracking-widest text-slate-500 transition-all">Despacho</button>
-                <button onclick="logout()" class="h-full px-4 text-rose-500 text-xs">✕</button>
+            <div class="flex gap-2 h-full">
+                <button onclick="showSection('gestion')" id="nav-gestion" class="h-full px-4 text-[9px] font-black uppercase tracking-widest tab-active">Cobros</button>
+                <button onclick="showSection('stats')" id="nav-stats" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500">Estadísticas</button>
+                <button onclick="showSection('despacho')" id="nav-despacho" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500">Despacho</button>
+                <button onclick="logout()" class="h-full px-4 text-rose-500 text-[11px]">✕</button>
             </div>
         </nav>
 
         <main class="p-6 space-y-6">
-            <div id="sec-gestion" class="fade-in space-y-6">
+            <div id="sec-gestion" class="space-y-6">
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
                     <div class="xl:col-span-4 glass p-4 rounded-3xl border-l-4 border-amber-500">
+                        <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-3">Precios Actuales</p>
                         <div class="grid grid-cols-3 gap-2">
-                            <div class="bg-slate-950/50 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">10KG</label><input type="number" id="p10" value="1500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
-                            <div class="bg-slate-950/50 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">18KG</label><input type="number" id="p18" value="2500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
-                            <div class="bg-slate-950/50 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">43KG</label><input type="number" id="p43" value="5500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">10KG</label><input type="number" id="p10" value="1500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">18KG</label><input type="number" id="p18" value="2500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-500 font-bold block">43KG</label><input type="number" id="p43" value="5500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
                         </div>
                     </div>
                     <div id="totales-container" class="xl:col-span-8 grid grid-cols-4 gap-2"></div>
@@ -133,35 +123,233 @@
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
                     <div class="xl:col-span-8 glass rounded-[2.5rem] p-8">
                         <div class="flex justify-between items-start mb-6">
-                            <h3 class="text-xl font-black italic">VALIDADOR OPERATIVO</h3>
-                            <div id="status-validacion" class="px-5 py-2 rounded-full text-[9px] font-black uppercase bg-slate-800 text-slate-500">Esperando Cédula</div>
+                            <h3 class="text-xl font-black italic uppercase">Validador de Operación</h3>
+                            <div id="status-validacion" class="px-4 py-2 rounded-full text-[9px] font-black uppercase bg-slate-800 text-slate-500 transition-all">Esperando Datos</div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-6">
-                                <div><input type="number" id="ci" oninput="buscarYValidar(this.value)" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xl mono focus:border-amber-500 outline-none" placeholder="CI BENEFICIARIO"><div id="perfil" class="mt-3 text-[11px] font-bold text-emerald-400 min-h-[1.5rem]"></div></div>
+                                <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Cédula del Beneficiario</label><input type="number" id="ci" oninput="buscarYValidar(this.value)" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xl mono focus:border-amber-500 outline-none" placeholder="00000000"><div id="perfil" class="mt-3 text-[11px] font-bold text-emerald-400 min-h-[1.5rem]"></div></div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <input type="text" id="ref" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl mono text-xs outline-none" placeholder="REF">
-                                    <input type="number" id="monto-ref" oninput="validarTodo()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl font-black text-white outline-none" placeholder="MONTO">
+                                    <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Referencia</label><input type="text" id="ref" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl mono outline-none" placeholder="REF"></div>
+                                    <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Monto Pagado</label><input type="number" id="monto-ref" oninput="validarTodo()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl font-black text-white outline-none" placeholder="0.00"></div>
                                 </div>
                             </div>
-                            <div class="bg-slate-950/40 p-6 rounded-3xl border border-white/5 space-y-6">
+                            <div class="bg-slate-950/40 p-6 rounded-3xl border border-white/5 space-y-6 text-center">
                                 <div class="grid grid-cols-3 gap-3">
-                                    <input type="number" id="q10" value="0" min="0" oninput="validarTodo()" class="bg-slate-900 p-3 rounded-xl text-center font-black">
-                                    <input type="number" id="q18" value="0" min="0" oninput="validarTodo()" class="bg-slate-900 p-3 rounded-xl text-center font-black">
-                                    <input type="number" id="q43" value="0" min="0" oninput="validarTodo()" class="bg-slate-900 p-3 rounded-xl text-center font-black">
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">10KG</span><input type="number" id="q10" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">18KG</span><input type="number" id="q18" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                    <div><span class="text-[8px] font-bold opacity-50 block mb-1">43KG</span><input type="number" id="q43" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
                                 </div>
-                                <div class="pt-4 border-t border-slate-800 flex justify-between items-center"><span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total:</span><span id="monto-calc" class="text-2xl font-black mono text-white">0.00 Bs</span></div>
+                                <div class="pt-4 border-t border-slate-800 flex justify-between items-center"><span class="text-[9px] font-black text-slate-500 uppercase">Total Requerido:</span><span id="monto-calculado" class="text-2xl font-black mono text-white">0.00 Bs</span></div>
                                 <button onclick="registrar()" id="btn-registrar" disabled class="w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Registrar Pago</button>
                             </div>
                         </div>
                     </div>
                     <div class="xl:col-span-4 glass rounded-[2rem] p-6 overflow-hidden">
-                        <h4 class="text-[10px] font-black uppercase mb-6 flex justify-between"><span>Actividad</span><span id="count-pagos" class="text-emerald-500">0</span></h4>
-                        <div id="lista-actividad" class="space-y-3 max-h-[400px] overflow-y-auto"></div>
+                        <h4 class="text-[10px] font-black uppercase mb-6 flex justify-between tracking-widest"><span>Actividad Reciente</span><span id="count-pagos" class="text-emerald-500 font-black tracking-widest">0 Registros</span></h4>
+                        <div id="lista-actividad" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
                     </div>
                 </div>
             </div>
 
-            <div id="sec-stats" class="hidden fade-in glass p-10 rounded-[2.5rem]">
-                <h3 class="text-xl font-black italic uppercase mb-8">Portal Estadístico 1</h3>
-                <div class="overflow-x-auto"><table
+            <div id="sec-stats" class="hidden glass p-10 rounded-[2.5rem] animate-fade-in">
+                <h3 class="text-xl font-black italic mb-6 uppercase tracking-tighter">Portal Estadístico 1</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[11px]">
+                        <thead class="text-slate-500 uppercase font-black tracking-widest border-b border-slate-800">
+                            <tr><th class="p-4">Calle</th><th class="p-4 text-center">10KG</th><th class="p-4 text-center">18KG</th><th class="p-4 text-center">43KG</th><th class="p-4 text-right">Total Bs</th></tr>
+                        </thead>
+                        <tbody id="stats-table-body" class="divide-y divide-slate-900"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="sec-despacho" class="hidden glass p-10 rounded-[2.5rem] animate-fade-in">
+                <h3 class="text-xl font-black italic mb-6 text-rose-500 uppercase tracking-tighter">Día de Despacho</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[11px]">
+                        <thead class="text-slate-500 uppercase font-black tracking-widest border-b border-slate-800">
+                            <tr><th class="p-4">Beneficiario</th><th class="p-4 text-center">Pago (10/18/43)</th><th class="p-4 text-center">Recibidos</th><th class="p-4 text-center">Diff</th><th class="p-4 text-right">Estatus</th></tr>
+                        </thead>
+                        <tbody id="despacho-table-body" class="divide-y divide-slate-900"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <footer class="p-6 text-center text-slate-600 text-[10px] font-black uppercase tracking-[0.4em] glass border-t border-slate-900 no-print">
+            HDC 2026 © Copyright | Trazabilidad Inmutable
+        </footer>
+    </div>
+
+    <script>
+        // ESTADO GLOBAL
+        let censoGlobal = [];
+        let registrosGlobales = [];
+        let comunidadConfig = { nombre: "Sin Definir", sector: "Sin Definir" };
+
+        const USUARIOS = {
+            "master": { pass: "master2026", role: "MASTER" },
+            "jefe23": { pass: "casco23", role: "JEFE" }
+        };
+
+        // LOGIN
+        function intentarLogin() {
+            const u = document.getElementById('user-input').value;
+            const p = document.getElementById('pass-input').value;
+
+            if (USUARIOS[u] && USUARIOS[u].pass === p) {
+                document.getElementById('login-view').classList.add('hidden');
+                if (USUARIOS[u].role === "MASTER") {
+                    document.getElementById('master-view').classList.remove('hidden');
+                } else {
+                    cargarVistaJefe();
+                }
+            } else { alert("Datos incorrectos"); }
+        }
+
+        function logout() { location.reload(); }
+
+        // EXCEL MASTER (.xlsx)
+        function procesarExcel(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                // Convertir a JSON
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                // Procesar filas (saltando cabecera si existe)
+                censoGlobal = json.slice(1).map(row => ({
+                    nombre: String(row[0] || "").trim(),
+                    calle: String(row[1] || "").trim(),
+                    ci: String(row[2] || "").trim()
+                })).filter(h => h.ci);
+
+                document.getElementById('upload-status').innerText = `✓ ${censoGlobal.length} Habitantes sincronizados desde Excel`;
+                document.getElementById('upload-status').className = "text-center text-[10px] font-bold text-emerald-500 mt-2";
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function guardarConfigMaster() {
+            comunidadConfig.nombre = document.getElementById('master-comunidad').value || "Comunidad No Definida";
+            comunidadConfig.sector = document.getElementById('master-municipio').value || "Sector No Definido";
+            alert("Ecosistema Sincronizado. Nube Actualizada.");
+            logout();
+        }
+
+        // JEFE VIEW
+        function cargarVistaJefe() {
+            document.getElementById('jefe-view').classList.remove('hidden');
+            document.getElementById('jefe-comunidad-name').innerText = comunidadConfig.nombre;
+            document.getElementById('jefe-municipio-name').innerText = comunidadConfig.sector;
+            actualizarGestionUI();
+        }
+
+        // NAVEGACIÓN Y SOMBREADO (FIXED)
+        function showSection(id) {
+            // Ocultar todas las secciones
+            ['gestion', 'stats', 'despacho'].forEach(s => document.getElementById(`sec-${s}`).classList.add('hidden'));
+            // Mostrar seleccionada
+            document.getElementById(`sec-${id}`).classList.remove('hidden');
+            
+            // Actualizar Estilos de los botones
+            ['gestion', 'stats', 'despacho'].forEach(n => {
+                const btn = document.getElementById(`nav-${n}`);
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-500');
+            });
+            
+            const activeBtn = document.getElementById(`nav-${id}`);
+            activeBtn.classList.add('tab-active');
+            activeBtn.classList.remove('text-slate-500');
+
+            if(id === 'stats') renderStats();
+            if(id === 'despacho') renderDespacho();
+        }
+
+        // OPERACIONES
+        function buscarYValidar(val) {
+            const h = censoGlobal.find(p => p.ci === val);
+            document.getElementById('perfil').innerText = h ? `${h.nombre} • ${h.calle}` : "Cédula no registrada";
+            validarTodo();
+        }
+
+        function validarTodo() {
+            const p10 = parseFloat(document.getElementById('p10').value) || 0;
+            const p18 = parseFloat(document.getElementById('p18').value) || 0;
+            const p43 = parseFloat(document.getElementById('p43').value) || 0;
+            const q10 = parseInt(document.getElementById('q10').value) || 0;
+            const q18 = parseInt(document.getElementById('q18').value) || 0;
+            const q43 = parseInt(document.getElementById('q43').value) || 0;
+            const montoRef = parseFloat(document.getElementById('monto-ref').value) || 0;
+            const requerido = (q10 * p10) + (q18 * p18) + (q43 * p43);
+
+            document.getElementById('monto-calculado').innerText = requerido.toFixed(2) + " Bs";
+            const status = document.getElementById('status-validacion');
+            const btn = document.getElementById('btn-registrar');
+
+            if (requerido > 0 && Math.abs(montoRef - requerido) < 0.1) {
+                status.innerText = "✓ COINCIDE"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-emerald-500 text-slate-950";
+                btn.disabled = false; btn.className = "w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-pointer shadow-lg";
+            } else if (requerido > 0) {
+                status.innerText = "✗ DIFERENCIA"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-rose-500 text-white";
+                btn.disabled = true; btn.className = "w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-not-allowed";
+            } else {
+                status.innerText = "ESPERANDO DATOS"; status.className = "px-4 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500";
+                btn.disabled = true;
+            }
+        }
+
+        function registrar() {
+            const h = censoGlobal.find(p => p.ci === document.getElementById('ci').value);
+            if(!h) return alert("Cédula no válida");
+            
+            const data = {
+                nombre: h.nombre, calle: h.calle, ci: h.ci, ref: document.getElementById('ref').value,
+                monto: parseFloat(document.getElementById('monto-ref').value),
+                q: [parseInt(document.getElementById('q10').value) || 0, parseInt(document.getElementById('q18').value) || 0, parseInt(document.getElementById('q43').value) || 0],
+                recibidos: 0, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            registrosGlobales.unshift(data);
+            actualizarGestionUI();
+            limpiarForm();
+        }
+
+        function actualizarGestionUI() {
+            const totals = registrosGlobales.reduce((acc, r) => {
+                acc.c10 += r.q[0]; acc.c18 += r.q[1]; acc.c43 += r.q[2]; acc.bs += r.monto; return acc;
+            }, { c10:0, c18:0, c43:0, bs:0 });
+            document.getElementById('totales-container').innerHTML = `
+                ${renderCard("10KG", totals.c10, "emerald")} ${renderCard("18KG", totals.c18, "emerald")}
+                ${renderCard("43KG", totals.c43, "emerald")} ${renderCard("TOTAL BS", totals.bs.toFixed(2), "blue")}
+            `;
+            document.getElementById('count-pagos').innerText = `${registrosGlobales.length} Registros`;
+            document.getElementById('lista-actividad').innerHTML = registrosGlobales.map(r => `<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-fade-in"><div><p class="text-[10px] font-black text-white uppercase">${r.nombre}</p><p class="text-[8px] text-slate-500">REF: ${r.ref} | ${r.time}</p></div><div class="text-right"><p class="text-[10px] font-black text-emerald-500">${r.monto} BS</p></div></div>`).join('');
+        }
+
+        function renderCard(label, val, col) { return `<div class="glass p-4 rounded-2xl border-l-4 border-${col === 'emerald' ? 'emerald-500' : 'blue-500'}"><p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${label}</p><p class="text-xl font-black text-white">${val}</p></div>`; }
+        function limpiarForm() { ['ci', 'ref', 'monto-ref'].forEach(id => document.getElementById(id).value = ""); ['q10', 'q18', 'q43'].forEach(id => document.getElementById(id).value = 0); document.getElementById('perfil').innerText = ""; validarTodo(); }
+
+        function renderStats() {
+            const ejes = {};
+            registrosGlobales.forEach(r => { if(!ejes[r.calle]) ejes[r.calle] = { c10:0, c18:0, c43:0, bs:0 }; ejes[r.calle].c10 += r.q[0]; ejes[r.calle].c18 += r.q[1]; ejes[r.calle].c43 += r.q[2]; ejes[r.calle].bs += r.monto; });
+            document.getElementById('stats-table-body').innerHTML = Object.entries(ejes).map(([calle, d]) => `<tr><td class="p-4 font-bold text-white uppercase tracking-tighter">${calle}</td><td class="p-4 text-center font-mono">${d.c10}</td><td class="p-4 text-center font-mono">${d.c18}</td><td class="p-4 text-center font-mono">${d.c43}</td><td class="p-4 text-right font-black text-emerald-500 font-mono">${d.bs.toFixed(2)}</td></tr>`).join('');
+        }
+
+        function renderDespacho() {
+            document.getElementById('despacho-table-body').innerHTML = registrosGlobales.map((r, idx) => {
+                const totalPagado = r.q[0] + r.q[1] + r.q[2];
+                const diff = r.recibidos - totalPagado;
+                return `<tr><td class="p-4"><b class="uppercase">${r.nombre}</b><br><small class="text-slate-500">${r.calle}</small></td><td class="p-4 text-center font-mono text-slate-400">${r.q.join('/')}</td><td class="p-4 text-center"><input type="number" value="${r.recibidos}" onchange="updateRecibido(${idx}, this.value)" class="w-12 bg-slate-900 border border-slate-800 rounded p-1 text-center font-bold text-white outline-none focus:border-rose-500"></td><td class="p-4 text-center font-bold ${diff===0?'text-emerald-500':'text-rose-500'}">${diff===0?'✓':diff}</td><td class="p-4 text-right"><span class="px-2 py-1 rounded-full text-[8px] font-black ${diff===0 && r.recibidos > 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-800 text-slate-500'} uppercase">${diff===0 && r.recibidos > 0 ? 'CONCILIADO' : 'PENDIENTE'}</span></td></tr>`;
+            }).join('');
+        }
+
+        function updateRecibido(idx, val) { registrosGlobales[idx].recibidos = parseInt(val) || 0; renderDespacho(); }
+    </script>
+</body>
+</html>
