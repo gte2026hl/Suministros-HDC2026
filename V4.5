@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-200">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>HDC 2026 - Trazabilidad Inmutable</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-active { border-bottom: 2px solid #10b981 !important; color: #10b981 !important; opacity: 1 !important; }
+        .sello-bg { background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4); border: 2px solid rgba(255, 255, 255, 0.2); }
+        .sello-text { background: linear-gradient(to right, #f8fafc 0%, #94a3b8 40%, #2563eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+    <div id="login-view" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-6">
+        <div class="max-w-md w-full glass p-10 rounded-[3rem] text-center space-y-8 border border-white/10 shadow-2xl">
+            <div class="sello-bg w-28 h-28 rounded-2xl flex items-center justify-center mx-auto transform rotate-3 scale-110"><span class="sello-text text-2xl">HDC<br>2026</span></div>
+            <div><h1 class="text-2xl font-black uppercase text-white italic">Acceso al Sistema</h1><p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-2 italic">Ecosistema Inmutable</p></div>
+            <div class="space-y-4">
+                <input type="text" id="user-input" placeholder="USUARIO" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold uppercase">
+                <input type="password" id="pass-input" placeholder="CONTRASEÑA" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold">
+                <button onclick="intentarLogin()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] shadow-xl shadow-amber-900/20 active:scale-95">Entrar al Portal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen flex flex-col">
+        <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800">
+            <div class="flex items-center gap-4">
+                <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
+                <div class="leading-none border-l border-slate-800 pl-4 ml-2">
+                    <h2 id="nav-comunidad" class="text-[10px] font-black uppercase text-slate-200">---</h2>
+                    <p id="nav-sector" class="text-[8px] text-emerald-500 font-bold uppercase mt-1">---</p>
+                </div>
+            </div>
+            <div id="nav-container" class="flex gap-2 h-full"></div>
+        </nav>
+        <main class="p-6 space-y-6 flex-grow" id="app-view"></main>
+    </div>
+
+    <script>
+        // INTEGRACIÓN QUIRÚRGICA DE LLAVES
+        const SB_URL = "https://wokszafewnnsmmhsvsqf.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indva3N6YWZld25uc21taHN2c3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMjEsImV4cCI6MjA5NDI2NTIyMX0.gYZ6rVgc74nE1Kxlykvr_beItgA6ndfv2bMs3godQK0";
+        const _sb = supabase.createClient(SB_URL, SB_KEY);
+
+        let userSession = null;
+        let db_censo = [];
+        let db_pagos = [];
+        let db_config = {};
+
+        async function intentarLogin() {
+            const u = document.getElementById('user-input').value.toLowerCase();
+            const p = document.getElementById('pass-input').value;
+            const { data, error } = await _sb.from('perfiles').select('*').eq('usuario', u).eq('password', p).maybeSingle();
+            
+            if (data) {
+                userSession = data;
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                await syncData();
+                renderNav();
+                userSession.role === 'MASTER' ? showMaster() : showJefe('gestion');
+            } else alert("Acceso Denegado");
+        }
+
+        async function syncData() {
+            const { data: c } = await _sb.from('configuracion').select('*').maybeSingle();
+            const { data: h } = await _sb.from('habitantes').select('*');
+            const { data: pg } = await _sb.from('pagos').select('*').order('created_at', { ascending: false });
+            db_config = c || {}; db_censo = h || []; db_pagos = pg || [];
+            document.getElementById('nav-comunidad').innerText = userSession.comunidad_asignada || db_config.comunidad_name;
+            document.getElementById('nav-sector').innerText = userSession.sector_asignado || db_config.sector_name;
+        }
+
+        function renderNav() {
+            const c = document.getElementById('nav-container');
+            if(userSession.role === 'MASTER') {
+                c.innerHTML = `<button onclick="showMaster()" id="n-master" class="h-full px-4 text-[9px] font-black uppercase tab-active">Admin Central</button>`;
+            } else {
+                c.innerHTML = `
+                    <button onclick="showJefe('gestion')" id="n-gestion" class="h-full px-4 text-[9px] font-black uppercase tab-active">Cobros</button>
+                    <button onclick="showJefe('stats')" id="n-stats" class="h-full px-4 text-[9px] font-black uppercase text-slate-500">Estadísticas</button>
+                    <button onclick="showJefe('despacho')" id="n-despacho" class="h-full px-4 text-[9px] font-black uppercase text-slate-500">Despacho</button>
+                `;
+            }
+            c.innerHTML += `<button onclick="location.reload()" class="h-full px-4 text-rose-500 text-xs">✕</button>`;
+        }
+
+        function setActive(id) {
+            document.querySelectorAll('#nav-container button').forEach(b => { b.classList.remove('tab-active'); b.classList.add('text-slate-500'); });
+            const act = document.getElementById(`n-${id}`);
+            if(act) { act.classList.add('tab-active'); act.classList.remove('text-slate-500'); }
+        }
+
+        // VISTA MASTER
+        function showMaster() {
+            setActive('master');
+            document.getElementById('app-view').innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+                    <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                        <h3 class="text-xs font-black text-amber-500 uppercase italic">Gestión de Jefes</h3>
+                        <input type="text" id="nu-u" placeholder="Usuario" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase">
+                        <input type="text" id="nu-p" placeholder="Contraseña" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs">
+                        <input type="text" id="nu-c" placeholder="Asignar Comunidad" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase">
+                        <input type="text" id="nu-s" placeholder="Asignar Municipio" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase">
+                        <button onclick="crearJefe()" class="w-full bg-amber-600 text-white py-4 rounded-xl font-black text-[10px] uppercase">Registrar Jefe</button>
+                        <div class="pt-4 border-t border-slate-800">
+                            <input type="file" id="xl" class="hidden" accept=".xlsx" onchange="subirExcel(this)">
+                            <label for="xl" class="block w-full bg-emerald-600 text-center py-4 rounded-xl font-black text-[10px] uppercase cursor-pointer">Sincronizar Excel (.xlsx)</label>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] overflow-hidden flex flex-col">
+                        <h3 class="text-xs font-black text-slate-500 mb-6 flex justify-between uppercase"><span>Censo Nube</span><span class="text-emerald-500">${db_censo.length} Registros</span></h3>
+                        <div class="overflow-y-auto max-h-[500px]">
+                            <table class="w-full text-left text-[10px]">
+                                <thead class="text-slate-500 uppercase"><tr><th class="p-3">Nombre</th><th class="p-3">Calle</th><th class="p-3">CI</th></tr></thead>
+                                <tbody>${db_censo.map(h => `<tr><td class="p-3 font-bold uppercase">${h.nombre}</td><td class="p-3 text-slate-600 uppercase">${h.calle}</td><td class="p-3 mono text-emerald-500">${h.ci}</td></tr>`).join('')}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        async function crearJefe() {
+            const n = { usuario: document.getElementById('nu-u').value.toLowerCase(), password: document.getElementById('nu-p').value, role: 'JEFE', comunidad_asignada: document.getElementById('nu-c').value, sector_asignado: document.getElementById('nu-s').value };
+            await _sb.from('perfiles').insert([n]); alert("Jefe Creado."); showMaster();
+        }
+
+        async function subirExcel(input) {
+            const r = new FileReader();
+            r.onload = async (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header:1});
+                const rows = json.slice(1).map(x => ({ nombre: String(x[0]), calle: String(x[1]), ci: String(x[2]) })).filter(h => h.ci != "undefined");
+                await _sb.from('habitantes').delete().neq('ci', '0');
+                await _sb.from('habitantes').insert(rows);
+                alert("Nube Actualizada."); location.reload();
+            };
+            r.readAsArrayBuffer(input.files[0]);
+        }
+
+        // VISTA JEFE
+        function showJefe(sec) {
+            setActive(sec);
+            const v = document.getElementById('app-view');
+            if(sec === 'gestion') {
+                v.innerHTML = `
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 fade-in">
+                    <div class="xl:col-span-4 glass p-6 rounded-[2rem] border-l-4 border-amber-500 space-y-4">
+                        <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest italic">Ajuste de Precios Ciclo</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">10KG</label><input type="number" id="p10" value="${db_config.p10}" oninput="val()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">18KG</label><input type="number" id="p18" value="${db_config.p18}" oninput="val()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                            <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 font-bold block">43KG</label><input type="number" id="p43" value="${db_config.p43}" oninput="val()" class="bg-transparent w-full font-bold text-xs outline-none text-center"></div>
+                        </div>
+                        <button onclick="setPrices()" class="w-full bg-slate-800 text-[8px] font-black uppercase py-2 rounded-lg text-slate-400">Fijar Precios Nube</button>
+                    </div>
+                    <div id="tot-cont" class="xl:col-span-8 grid grid-cols-4 gap-2"></div>
+                    <div class="xl:col-span-8 glass p-10 rounded-[2.5rem] space-y-8">
+                        <div class="flex justify-between items-center"><h3 class="text-xl font-black italic uppercase">Validador Tactical</h3><div id="badge" class="px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase">Listo</div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="space-y-6">
+                                <input type="number" id="ci" oninput="look(this.value)" class="w-full bg-slate-950 border border-slate-800 p-5 rounded-2xl text-2xl mono focus:border-amber-500 outline-none" placeholder="Cédula">
+                                <div id="v-name" class="text-emerald-400 font-black uppercase text-xs min-h-[1rem]"></div>
+                                <div class="grid grid-cols-2 gap-4"><input type="text" id="ref" class="bg-slate-950 p-4 rounded-xl border border-slate-800 mono outline-none uppercase" placeholder="REF"><input type="number" id="m-ref" oninput="val()" class="bg-slate-900 p-4 rounded-xl border border-slate-700 font-black text-white" placeholder="0.00"></div>
+                            </div>
+                            <div class="bg-slate-950/40 p-8 rounded-3xl space-y-6">
+                                <div class="grid grid-cols-3 gap-3">
+                                    <input type="number" id="q10" value="0" oninput="val()" class="bg-slate-900 p-4 rounded-xl text-center font-black">
+                                    <input type="number" id="q18" value="0" oninput="val()" class="bg-slate-900 p-4 rounded-xl text-center font-black">
+                                    <input type="number" id="q43" value="0" oninput="val()" class="bg-slate-900 p-4 rounded-xl text-center font-black">
+                                </div>
+                                <div class="flex justify-between items-center"><span class="text-[9px] font-black text-slate-500 uppercase">Requerido:</span><span id="v-calc" class="text-3xl font-black mono text-white">0.00</span></div>
+                                <button onclick="pago()" id="v-btn" disabled class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest">Confirmar Pago</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="xl:col-span-4 glass p-8 rounded-[2rem] overflow-hidden flex flex-col">
+                        <h4 class="text-[10px] font-black uppercase mb-6 flex justify-between tracking-widest"><span>Actividad</span><span class="text-emerald-500">${db_pagos.length}</span></h4>
+                        <div class="space-y-3 overflow-y-auto max-h-[500px]" id="h-list"></div>
+                    </div>
+                </div>`;
+                updateStatsUI();
+            } else if (sec === 'stats') {
+                const paid = db_pagos.map(p => p.ci);
+                const pend = db_censo.filter(h => !paid.includes(h.ci));
+                v.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 fade-in">
+                    <div class="glass p-10 rounded-[2.5rem]"><h3 class="text-xl font-black italic mb-6 uppercase">Recaudación Calle</h3><table class="w-full text-xs text-left"><thead class="text-slate-500 uppercase"><tr><th class="p-4">Calle</th><th class="p-4 text-right">Bs</th></tr></thead><tbody class="divide-y divide-slate-900">${Object.entries(db_pagos.reduce((a,p)=>{const c=db_censo.find(h=>h.ci===p.ci)?.calle||'S/C'; a[c]=(a[c]||0)+p.monto; return a;},{})).map(([c,m])=>`<tr><td class="p-4 font-bold uppercase">${c}</td><td class="p-4 text-right font-black text-emerald-500">${m.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>
+                    <div class="glass p-10 rounded-[2.5rem] border-l-4 border-rose-500"><h3 class="text-xl font-black italic mb-6 text-rose-500 uppercase">Pendientes (${pend.length})</h3><div class="overflow-y-auto max-h-[450px]"><table class="w-full text-xs text-left"><thead><tr class="text-slate-600 font-black"><th>Nombre</th><th>Calle</th></tr></thead><tbody>${pend.map(h=>`<tr><td class="py-3 font-bold uppercase">${h.nombre}</td><td class="py-3 text-slate-500 text-[10px] uppercase">${h.calle}</td></tr>`).join('')}</tbody></table></div></div>
+                </div>`;
+            }
+        }
+
+        async function setPrices() {
+            const p = { p10: document.getElementById('p10').value, p18: document.getElementById('p18').value, p43: document.getElementById('p43').value };
+            await _sb.from('configuracion').update(p).eq('id', 1); alert("Precios Sincronizados."); await syncData();
+        }
+
+        function look(v) { const h = db_censo.find(x => x.ci === v); document.getElementById('v-name').innerText = h ? `${h.nombre} • ${h.calle}` : ""; val(); }
+
+        function val() {
+            const r = (document.getElementById('q10').value * document.getElementById('p10').value) + (document.getElementById('q18').value * document.getElementById('p18').value) + (document.getElementById('q43').value * document.getElementById('p43').value);
+            const m = parseFloat(document.getElementById('m-ref').value) || 0;
+            document.getElementById('v-calc').innerText = r.toFixed(2);
+            const b = document.getElementById('v-btn'); const bd = document.getElementById('badge');
+            if(r > 0 && Math.abs(r - m) < 0.1) {
+                b.disabled = false; b.className = "w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-[10px] cursor-pointer shadow-lg";
+                bd.className = "px-5 py-2 rounded-full text-[9px] font-black bg-emerald-500 text-slate-950 uppercase"; bd.innerText = "✓ COINCIDE";
+            } else {
+                b.disabled = true; b.className = "w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px]";
+                bd.className = "px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase"; bd.innerText = r > 0 ? "✗ DIFERENCIA" : "LISTO";
+            }
+        }
+
+        async function pago() {
+            const d = { ci: document.getElementById('ci').value, referencia: document.getElementById('ref').value, monto: parseFloat(document.getElementById('m-ref').value), q10: document.getElementById('q10').value, q18: document.getElementById('q18').value, q43: document.getElementById('q43').value, registrado_por: userSession.usuario };
+            await _sb.from('pagos').insert([d]); await syncData(); showJefe('gestion');
+        }
+
+        function updateStatsUI() {
+            const t = db_pagos.reduce((a,p)=>({c10:a.c10+p.q10, c18:a.c18+p.q18, c43:a.c43+p.q43, bs:a.bs+p.monto}), {c10:0,c18:0,c43:0,bs:0});
+            document.getElementById('tot-cont').innerHTML = `
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">10kg</p><p class="text-xl font-black">${t.c10}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">18kg</p><p class="text-xl font-black">${t.c18}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">43kg</p><p class="text-xl font-black">${t.c43}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-blue-500"><p class="text-[8px] font-black text-slate-500 uppercase">Total Bs</p><p class="text-xl font-black">${t.bs.toFixed(2)}</p></div>`;
+            document.getElementById('h-list').innerHTML = db_pagos.map(p => `<div class="bg-slate-900/50 p-4 rounded-xl flex justify-between items-center"><div class="leading-tight"><p class="text-[10px] font-black uppercase text-white">${db_censo.find(h=>h.ci===p.ci)?.nombre || 'S/N'}</p><p class="text-[8px] text-slate-500">REF: ${p.referencia}</p></div><p class="text-emerald-500 font-black text-xs">${p.monto} Bs</p></div>`).join('');
+        }
+    </script>
+</body>
+</html>
