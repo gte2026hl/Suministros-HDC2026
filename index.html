@@ -1,155 +1,73 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full bg-slate-950 text-slate-200">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HDC2026 - Registro de Suministros</title>
+    <title>HDC 1991 | Ecosistema de Gestión Dual</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Open+Sans:wght@400;600;700&display=swap');
-        :root { --gte-blue: #003366; --gte-orange: #FF6600; }
-        body { font-family: 'Open Sans', sans-serif; background-color: #f1f5f9; margin: 0; }
-        h1, h2, h3 { font-family: 'Poppins', sans-serif; }
-        .btn-gte-blue { background-color: var(--gte-blue); color: white; transition: 0.3s; font-weight: 800; border-radius: 12px; }
-        .btn-gte-blue:hover { background-color: var(--gte-orange); transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 102, 0, 0.3); }
-        .content-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #gte-toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--gte-blue); color: white; padding: 14px 40px; border-radius: 50px; font-weight: 800; font-size: 11px; border: 2px solid var(--gte-orange); z-index: 10000; display: none; }
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .active-portal-gas { border-bottom: 3px solid #10b981; color: #10b981; }
+        .active-portal-clap { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row">
+<body class="min-h-full flex flex-col">
 
-    <div id="gte-toast">Registro Exitoso</div>
-
-    <!-- Sidebar Institucional -->
-    <nav class="w-full md:w-80 bg-[#003366] text-white flex flex-col sticky top-0 md:h-screen z-50">
-        <div class="p-10">
-            <h2 class="text-2xl font-black uppercase leading-tight">HDC<br><span class="text-gte-orange">SUMINISTROS</span></h2>
-            <p class="text-[10px] text-gte-orange font-black mt-4 uppercase italic">Módulo de Suministros 2026</p>
+    <!-- NAVEGACIÓN SUPERIOR DINÁMICA -->
+    <nav class="glass-nav sticky top-0 z-50 w-full px-4 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center font-bold text-slate-950 text-xs">HDC</div>
+            <span class="text-sm font-semibold tracking-tighter uppercase">HDC 1991</span>
         </div>
-        <div class="flex-grow px-6 space-y-2">
-            <div class="p-4 bg-white/10 rounded-2xl border-l-4 border-gte-orange">
-                <p class="text-[9px] font-black uppercase text-slate-400">Operador Activo</p>
-                <p class="text-sm font-bold">23 DE ENERO CASCO CENTRAL</p>
+
+        <!-- Selector de Portal -->
+        <div class="flex gap-6 h-full items-center text-[11px] font-bold tracking-widest uppercase">
+            <button id="nav-gas" class="h-full px-2 active-portal-gas transition-all duration-300">Gestión Gas</button>
+            <button id="nav-clap" class="h-full px-2 opacity-40 hover:opacity-100 transition-all duration-300">Gestión CLAP</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <div class="text-right hidden sm:block">
+                <p class="text-[10px] text-slate-500 leading-none">Jefe de Comunidad</p>
+                <p class="text-xs font-medium">HDC User</p>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
             </div>
         </div>
-        <div class="p-8 text-[9px] font-black text-white/20 uppercase text-center tracking-widest">HDC2026</div>
     </nav>
 
-    <!-- Área de Trabajo -->
-    <main class="flex-grow p-8 md:p-16 overflow-y-auto animate-fade-in">
-        <header class="mb-12">
-            <h2 class="text-4xl font-black text-[#003366] uppercase leading-none">Registro de Pagos</h2>
-            <p class="text-slate-400 font-bold mt-2 italic">Control Maestro de CLAP y Gas Licuado.</p>
+    <!-- CONTENEDOR PRINCIPAL DE ALTO RENDIMIENTO -->
+    <main id="main-content" class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
+        
+        <!-- HEADER DE SECCIÓN DINÁMICO -->
+        <header class="mb-8 border-l-4 border-emerald-500 pl-4 py-2">
+            <h1 class="text-2xl font-bold text-white tracking-tight">Portal de Gestión de Gas</h1>
+            <p class="text-slate-400 text-sm">Ciclo de Cobro: Mayo 2026 | Municipio Guacara</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-            <!-- Formulario de Ingesta -->
-            <div class="content-card p-10 border-t-[12px] border-gte-orange">
-                <h3 class="text-xs font-black text-[#003366] uppercase mb-8 tracking-widest border-b pb-4">Nueva Transacción</h3>
-                <div class="space-y-6">
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Cédula del Beneficiario</label>
-                        <input type="text" id="cedula" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange" placeholder="V-00.000.000">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Tipo de Suministro</label>
-                        <select id="tipo" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange">
-                            <option value="CLAP">Combo CLAP</option>
-                            <option value="GAS_10KG">Gas 10kg</option>
-                            <option value="GAS_18KG">Gas 18kg</option>
-                            <option value="GAS_43KG">Gas 43kg</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase mb-1 block">Referencia de Pago</label>
-                        <input type="text" id="referencia" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none focus:ring-2 ring-gte-orange" placeholder="Número de confirmación">
-                    </div>
-                    <button onclick="registrarVenta()" class="w-full btn-gte-blue py-5 uppercase text-xs tracking-widest shadow-lg">Confirmar y Guardar</button>
-                </div>
-            </div>
-
-            <!-- Auditoría en Tiempo Real -->
-            <div class="lg:col-span-2 content-card overflow-hidden">
-                <div class="bg-slate-50 p-6 border-b flex justify-between items-center">
-                    <h3 class="text-xs font-black text-[#003366] uppercase tracking-widest">Historial del Día</h3>
-                    <span id="contador" class="bg-[#003366] text-white px-4 py-1 rounded-full text-[10px] font-black">0 REGISTROS</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
-                                <th class="p-6">Date</th>
-                                <th class="p-6">Cédula</th>
-                                <th class="p-6">Suministro</th>
-                                <th class="p-6">Referencia</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-body" class="divide-y divide-slate-100 font-bold text-slate-600 text-sm">
-                            <!-- Los datos aparecerán aquí -->
-                        </tbody>
-                    </table>
-                </div>
+        <!-- ESPACIO PARA MÓDULOS (VERSIONES POSTERIORES) -->
+        <div id="app-viewport" class="grid grid-cols-1 gap-6">
+            <!-- Aquí inyectaremos los módulos de registro, pagos y balances -->
+            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-12 text-center">
+                <p class="text-slate-500 italic">Arquitectura lista. Esperando inyección de lógica de datos...</p>
             </div>
         </div>
+
     </main>
 
-    <script>
-        let registros = [];
+    <!-- FOOTER MÓVIL OPTIMIZADO -->
+    <footer class="p-6 text-center text-slate-600 text-[10px] uppercase tracking-[0.2em] border-t border-slate-900">
+        Ecosistema HDC 1991 &copy; 2026 | Trazabilidad Extraordinaria
+    </footer>
 
-        function registrarVenta() {
-            const cedula = document.getElementById('cedula').value.trim();
-            const tipo = document.getElementById('tipo').value;
-            const ref = document.getElementById('referencia').value.trim();
-
-            if (!cedula || !ref) {
-                alert("DATOS INCOMPLETOS: Se requiere Cédula y Referencia.");
-                return;
-            }
-
-            const data = {
-                id: Date.now(),
-                time: new Date().Date.now(),
-                cedula: cedula.toUpperCase(),
-                tipo: tipo,
-                ref: ref
-            };
-
-            registros.unshift(data); // Insertar al inicio para trazabilidad visual
-            actualizarInterfaz();
-            limpiarForm();
-            showToast("Suministro Sincronizado");
-        }
-
-        function actualizarInterfaz() {
-            const body = document.getElementById('tabla-body');
-            document.getElementById('contador').innerText = `${registros.length} REGISTROS`;
-            
-            body.innerHTML = registros.map(r => `
-                <tr class="hover:bg-slate-50 transition animate-fade-in">
-                    <td class="p-6 text-[10px] text-slate-400">${r.time}</td>
-                    <td class="p-6">${r.cedula}</td>
-                    <td class="p-6">
-                        <span class="bg-orange-50 text-gte-orange px-3 py-1 rounded-lg border border-orange-100 text-[10px]">
-                            ${r.tipo}
-                        </span>
-                    </td>
-                    <td class="p-6 font-mono text-xs">${r.ref}</td>
-                </tr>
-            `).join('');
-        }
-
-        function limpiarForm() {
-            document.getElementById('cedula').value = "";
-            document.getElementById('referencia').value = "";
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('gte-toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        }
-    </script>
 </body>
 </html>
