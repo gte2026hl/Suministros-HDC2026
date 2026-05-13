@@ -3,189 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .tab-active { border-bottom: 4px solid #10b981; color: white; background: rgba(16, 185, 129, 0.05); }
-        .btn-portal { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-active { border-bottom: 2px solid #10b981; color: #10b981; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        @media print { .no-print { display: none !important; } .print-only { display: block !important; } .glass { background: white !important; color: black !important; border: 1px solid #ccc !important; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
 
-    <nav class="w-full h-20 glass-card sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800">
-        <div class="flex items-center gap-10">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-emerald-500/20">HDC</div>
-                <div>
-                    <h2 class="text-sm font-black tracking-tighter uppercase leading-none">Casco Central</h2>
-                    <p class="text-[9px] text-emerald-500 font-bold tracking-[0.3em] mt-1">23 DE ENERO</p>
-                </div>
-            </div>
-            
-            <div class="h-20 flex">
-                <button onclick="switchPortal('gas')" class="px-8 h-full text-[11px] font-black uppercase tracking-[0.2em] tab-active">Gestión Gas</button>
-                <button onclick="switchPortal('clap')" class="px-8 h-full text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white">Gestión CLAP</button>
+    <nav class="w-full h-14 glass sticky top-0 z-50 flex items-center justify-between px-6 border-b border-slate-800 no-print">
+        <div class="flex items-center gap-4">
+            <span class="bg-emerald-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded shadow-lg shadow-emerald-500/20">HDC 2026</span>
+            <div class="leading-none">
+                <h2 class="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-200">Casco Central 23 de Enero</h2>
+                <p class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">Gestión de Ciclo</p>
             </div>
         </div>
-
-        <div class="flex items-center gap-6">
-            <button onclick="openPortalStats()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-700 flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                Portal Estadístico 1
-            </button>
+        <div class="flex gap-2 h-full">
+            <button onclick="showSection('gestion')" id="nav-gestion" class="h-full px-4 text-[9px] font-black uppercase tracking-widest tab-active transition-all">Cobros</button>
+            <button onclick="showSection('stats')" id="nav-stats" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Estadísticas</button>
+            <button onclick="showSection('despacho')" id="nav-despacho" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Día de Despacho</button>
         </div>
     </nav>
 
-    <main class="w-full p-8 space-y-8">
-        
-        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div class="xl:col-span-4 glass-card p-6 rounded-3xl border-l-4 border-emerald-500">
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Precios de Ciclo</p>
-                    <span class="text-[9px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">EDITABLE</span>
+    <main class="p-6 space-y-6">
+
+        <div id="sec-gestion" class="space-y-6 animate-fade-in">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                <div class="xl:col-span-4 glass p-4 rounded-3xl border-l-4 border-emerald-500">
+                    <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-3">Precios Actuales</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                            <label class="text-[8px] block text-slate-500 uppercase font-bold">10KG</label>
+                            <input type="number" id="p10" value="1500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-sm outline-none">
+                        </div>
+                        <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                            <label class="text-[8px] block text-slate-500 uppercase font-bold">18KG</label>
+                            <input type="number" id="p18" value="2500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-sm outline-none">
+                        </div>
+                        <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800">
+                            <label class="text-[8px] block text-slate-500 uppercase font-bold">43KG</label>
+                            <input type="number" id="p43" value="5500" oninput="validarTodo()" class="bg-transparent w-full font-bold text-sm outline-none">
+                        </div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                        <label class="text-[8px] block text-slate-600 font-bold mb-1 uppercase">10KG</label>
-                        <input type="number" id="price10" value="1500" oninput="validarRegistro()" class="w-full bg-transparent font-bold text-sm outline-none">
-                    </div>
-                    <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                        <label class="text-[8px] block text-slate-600 font-bold mb-1 uppercase">18KG</label>
-                        <input type="number" id="price18" value="2500" oninput="validarRegistro()" class="w-full bg-transparent font-bold text-sm outline-none">
-                    </div>
-                    <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
-                        <label class="text-[8px] block text-slate-600 font-bold mb-1 uppercase">43KG</label>
-                        <input type="number" id="price43" value="5500" oninput="validarRegistro()" class="w-full bg-transparent font-bold text-sm outline-none">
-                    </div>
-                </div>
+                <div id="totales-container" class="xl:col-span-8 grid grid-cols-4 gap-2"></div>
             </div>
 
-            <div class="xl:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="glass-card p-6 rounded-3xl">
-                    <p class="text-[9px] font-black text-slate-500 uppercase mb-2">Total 10kg</p>
-                    <p id="total10" class="text-3xl font-black text-white">0</p>
-                </div>
-                <div class="glass-card p-6 rounded-3xl">
-                    <p class="text-[9px] font-black text-slate-500 uppercase mb-2">Total 18kg</p>
-                    <p id="total18" class="text-3xl font-black text-white">0</p>
-                </div>
-                <div class="glass-card p-6 rounded-3xl">
-                    <p class="text-[9px] font-black text-slate-500 uppercase mb-2">Total 43kg</p>
-                    <p id="total43" class="text-3xl font-black text-white">0</p>
-                </div>
-                <div class="glass-card p-6 rounded-3xl bg-emerald-500/5 border-emerald-500/20">
-                    <p class="text-[9px] font-black text-emerald-500 uppercase mb-2">Total Bs</p>
-                    <p id="totalBs" class="text-3xl font-black text-emerald-400">0.00</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            
-            <div class="xl:col-span-8 glass-card rounded-[2.5rem] p-10">
-                <div class="flex justify-between items-center mb-10">
-                    <h3 class="text-2xl font-black italic tracking-tighter">REGISTRO TACTICAL <span class="text-emerald-500">.01</span></h3>
-                    <div id="valid-badge" class="px-6 py-2 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-500">
-                        Esperando Acción
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div class="space-y-8">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                <div class="xl:col-span-8 glass rounded-[2.5rem] p-8">
+                    <div class="flex justify-between items-start mb-8">
                         <div>
-                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-3">Cédula del Vecino</label>
-                            <input type="number" id="cedula" oninput="buscarHabitante(this.value)" class="w-full bg-slate-950 border border-slate-800 p-5 rounded-2xl text-2xl font-mono focus:border-emerald-500 outline-none transition-all" placeholder="V-00000000">
-                            <div id="habitante-info" class="mt-4 p-4 rounded-xl border border-dashed border-slate-800 text-sm font-bold text-slate-400">
-                                Ingrese documento para validar...
-                            </div>
+                            <h3 class="text-xl font-black italic uppercase tracking-tighter">Validador de Operación</h3>
+                            <p class="text-[9px] text-slate-500 font-bold uppercase">Carga de datos por cédula</p>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-3">Referencia</label>
-                                <input type="text" id="referencia" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl font-bold outline-none focus:border-emerald-500" placeholder="000000">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-3 italic">Monto de Pago</label>
-                                <input type="number" id="monto-ref" oninput="validarRegistro()" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-2xl font-black text-white text-xl outline-none focus:border-blue-500" placeholder="0.00">
-                            </div>
+                        <div id="status-validacion" class="px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-tighter bg-slate-800 text-slate-500">
+                            Esperando Datos
                         </div>
                     </div>
 
-                    <div class="bg-slate-900/40 p-8 rounded-[2rem] border border-white/5 space-y-8">
-                        <div>
-                            <p class="text-[10px] font-black text-slate-500 uppercase text-center mb-6">Selección de Cilindros</p>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div class="text-center">
-                                    <span class="text-[9px] font-bold text-slate-400 block mb-2 uppercase tracking-tighter">Pequeño (10)</span>
-                                    <input type="number" id="q10" value="0" min="0" oninput="validarRegistro()" class="w-full bg-slate-950 p-4 rounded-2xl text-center font-black text-xl text-emerald-400 border border-slate-800">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Cédula del Beneficiario</label>
+                                <input type="number" id="ci" oninput="buscarYValidar(this.value)" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-xl mono focus:border-emerald-500 outline-none" placeholder="00000000">
+                                <div id="perfil" class="mt-3 text-[11px] font-bold text-emerald-400 min-h-[1.5rem]"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-500 uppercase mb-2 block">Referencia</label>
+                                    <input type="text" id="ref" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl mono outline-none" placeholder="Referencia">
                                 </div>
-                                <div class="text-center">
-                                    <span class="text-[9px] font-bold text-slate-400 block mb-2 uppercase tracking-tighter">Mediano (18)</span>
-                                    <input type="number" id="q18" value="0" min="0" oninput="validarRegistro()" class="w-full bg-slate-950 p-4 rounded-2xl text-center font-black text-xl text-emerald-400 border border-slate-800">
-                                </div>
-                                <div class="text-center">
-                                    <span class="text-[9px] font-bold text-slate-400 block mb-2 uppercase tracking-tighter">Grande (43)</span>
-                                    <input type="number" id="q43" value="0" min="0" oninput="validarRegistro()" class="w-full bg-slate-950 p-4 rounded-2xl text-center font-black text-xl text-emerald-400 border border-slate-800">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-500 uppercase mb-2 block">Monto Pagado</label>
+                                    <input type="number" id="monto-ref" oninput="validarTodo()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl font-black text-white outline-none" placeholder="0.00">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="pt-6 border-t border-slate-800 flex justify-between items-end">
-                            <div>
-                                <p class="text-[9px] font-bold text-slate-500 uppercase">Total Requerido</p>
-                                <p id="monto-calc" class="text-3xl font-black text-white">0.00 Bs</p>
+                        <div class="bg-slate-950/40 p-6 rounded-3xl border border-white/5 space-y-6">
+                            <div class="grid grid-cols-3 gap-3 text-center">
+                                <div><span class="text-[8px] font-bold opacity-50 block mb-1">10KG</span><input type="number" id="q10" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                <div><span class="text-[8px] font-bold opacity-50 block mb-1">18KG</span><input type="number" id="q18" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
+                                <div><span class="text-[8px] font-bold opacity-50 block mb-1">43KG</span><input type="number" id="q43" value="0" min="0" oninput="validarTodo()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black"></div>
                             </div>
-                            <button id="btn-save" disabled onclick="registrarPago()" class="bg-slate-800 text-slate-500 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all">
-                                Procesar Cobro
-                            </button>
+                            <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
+                                <span class="text-[9px] font-black text-slate-500 uppercase">Total Requerido:</span>
+                                <span id="monto-calculado" class="text-2xl font-black mono text-white">0.00 Bs</span>
+                            </div>
+                            <button onclick="registrar()" id="btn-registrar" disabled class="w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Registrar Transacción</button>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="xl:col-span-4 glass-card rounded-[2.5rem] p-8">
-                <h4 class="text-xs font-black uppercase tracking-[0.2em] mb-6 text-slate-500">Actividad del Ciclo</h4>
-                <div id="historial" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                    </div>
+                <div class="xl:col-span-4 glass rounded-[2rem] p-6 overflow-hidden">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest mb-6 flex justify-between">
+                        <span>Historial Activo</span>
+                        <span id="count-pagos" class="text-emerald-500">0 Registros</span>
+                    </h4>
+                    <div id="lista-actividad" class="space-y-3 max-h-[450px] overflow-y-auto pr-2"></div>
+                </div>
             </div>
-
         </div>
+
+        <div id="sec-stats" class="hidden space-y-6">
+            <div class="flex justify-between items-end no-print">
+                <div>
+                    <h3 class="text-2xl font-black italic uppercase tracking-tighter text-white">Portal Estadístico 1</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Resumen Analítico por Calle</p>
+                </div>
+                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-900/40 transition-all active:scale-95">Generar Reporte Excel/PDF</button>
+            </div>
+
+            <div class="glass rounded-[2rem] overflow-hidden border border-white/5">
+                <table class="w-full text-left text-[11px]">
+                    <thead class="bg-slate-900/80 text-slate-500 uppercase font-black">
+                        <tr>
+                            <th class="p-6">Nombre de la Calle</th>
+                            <th class="p-6 text-center">10KG</th>
+                            <th class="p-6 text-center">18KG</th>
+                            <th class="p-6 text-center">43KG</th>
+                            <th class="p-6 text-right">Monto Total Recaudado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stats-table-body" class="divide-y divide-slate-900"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="sec-despacho" class="hidden space-y-6">
+            <div class="flex justify-between items-start no-print">
+                <div>
+                    <h3 class="text-2xl font-black italic uppercase tracking-tighter text-rose-500">Día de Despacho</h3>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Conciliación de Cilindros Recibidos</p>
+                </div>
+                <div id="despacho-stats" class="flex gap-4"></div>
+            </div>
+
+            <div class="glass rounded-[2rem] overflow-hidden">
+                <table class="w-full text-left text-[11px]">
+                    <thead class="bg-slate-900/80 text-slate-500 uppercase font-black">
+                        <tr>
+                            <th class="p-6">Beneficiario / Calle</th>
+                            <th class="p-6 text-center">Pagados (10/18/43)</th>
+                            <th class="p-6 text-center">Cilindros Recibidos</th>
+                            <th class="p-6 text-center">Diferencia</th>
+                            <th class="p-6 text-right">Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="despacho-table-body" class="divide-y divide-slate-900"></tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <script>
-        // Lógica de Validación Maestra
-        function validarRegistro() {
-            const m10 = document.getElementById('price10').value * document.getElementById('q10').value;
-            const m18 = document.getElementById('price18').value * document.getElementById('q18').value;
-            const m43 = document.getElementById('price43').value * document.getElementById('q43').value;
-            const totalCalc = m10 + m18 + m43;
-            const montoIngresado = parseFloat(document.getElementById('monto-ref').value) || 0;
+        // DATA MAESTRA (Cloud Storage)
+        let censo = [
+            { ci: "12345678", nombre: "PEDRO MUJICA", calle: "PLAZA" },
+            { ci: "23456789", nombre: "ANA CASTILLO", calle: "ZAMORA" },
+            { ci: "34567890", nombre: "MARILUZ FUENTES", calle: "PLAZA" },
+            { ci: "45678901", nombre: "ERMELY DIAZ", calle: "ZAMORA" }
+        ];
 
-            document.getElementById('monto-calc').innerText = totalCalc.toFixed(2) + " Bs";
+        let registros = [];
+
+        function showSection(id) {
+            ['gestion', 'stats', 'despacho'].forEach(s => document.getElementById(`sec-${s}`).classList.add('hidden'));
+            document.getElementById(`sec-${id}`).classList.remove('hidden');
             
-            const badge = document.getElementById('valid-badge');
-            const btn = document.getElementById('btn-save');
+            ['gestion', 'stats', 'despacho'].forEach(n => {
+                document.getElementById(`nav-${n}`).className = "h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all";
+            });
+            document.getElementById(`nav-${id}`).classList.add('tab-active');
 
-            if (totalCalc > 0 && totalCalc === montoIngresado) {
-                badge.className = "px-6 py-2 rounded-full text-[10px] font-black uppercase bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20 animate-bounce";
-                badge.innerText = "✓ Monto Coincide Perfectamente";
-                btn.className = "bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-900/20 active:scale-95 cursor-pointer";
+            if(id === 'stats') renderStats();
+            if(id === 'despacho') renderDespacho();
+        }
+
+        // LÓGICA DE VALIDACIÓN Y REGISTRO
+        function validarTodo() {
+            const p10 = parseFloat(document.getElementById('p10').value) || 0;
+            const p18 = parseFloat(document.getElementById('p18').value) || 0;
+            const p43 = parseFloat(document.getElementById('p43').value) || 0;
+            const q10 = parseInt(document.getElementById('q10').value) || 0;
+            const q18 = parseInt(document.getElementById('q18').value) || 0;
+            const q43 = parseInt(document.getElementById('q43').value) || 0;
+
+            const montoRef = parseFloat(document.getElementById('monto-ref').value) || 0;
+            const requerido = (q10 * p10) + (q18 * p18) + (q43 * p43);
+
+            document.getElementById('monto-calculado').innerText = requerido.toFixed(2) + " Bs";
+            const status = document.getElementById('status-validacion');
+            const btn = document.getElementById('btn-registrar');
+
+            if (requerido > 0 && Math.abs(montoRef - requerido) < 0.01) {
+                status.innerText = "✓ Monto Coincide";
+                status.className = "px-5 py-2 rounded-full text-[9px] font-black uppercase bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20";
                 btn.disabled = false;
-            } else if (totalCalc > 0 && totalCalc !== montoIngresado) {
-                badge.className = "px-6 py-2 rounded-full text-[10px] font-black uppercase bg-rose-600 text-white";
-                badge.innerText = "✗ Diferencia en Monto de Referencia";
-                btn.className = "bg-slate-800 text-slate-500 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest cursor-not-allowed";
+                btn.className = "w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-900/20 active:scale-95 transition-all";
+            } else if (requerido > 0) {
+                status.innerText = "✗ Diferencia en Monto";
+                status.className = "px-5 py-2 rounded-full text-[9px] font-black uppercase bg-rose-500 text-white";
                 btn.disabled = true;
+                btn.className = "w-full bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-not-allowed";
             } else {
-                badge.innerText = "Esperando Datos";
-                badge.className = "px-6 py-2 rounded-full text-[10px] font-black uppercase bg-slate-800 text-slate-500";
+                status.innerText = "Esperando Datos";
+                status.className = "px-5 py-2 rounded-full text-[9px] font-black uppercase bg-slate-800 text-slate-500";
                 btn.disabled = true;
             }
         }
-        
-        // El resto de la lógica de búsqueda y registro sigue la misma estructura impecable...
+
+        function buscarYValidar(val) {
+            const h = censo.find(p => p.ci === val);
+            document.getElementById('perfil').innerText = h ? `${h.nombre} • Calle ${h.calle}` : "";
+            validarTodo();
+        }
+
+        function registrar() {
+            const h = censo.find(p => p.ci === document.getElementById('ci').value);
+            const data = {
+                nombre: h.nombre,
+                calle: h.calle,
+                ci: h.ci,
+                ref: document.getElementById('ref').value,
+                monto: parseFloat(document.getElementById('monto-ref').value),
+                q: [parseInt(document.getElementById('q10').value) || 0, parseInt(document.getElementById('q18').value) || 0, parseInt(document.getElementById('q43').value) || 0],
+                recibidos: 0,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            registros.unshift(data);
+            actualizarGestionUI();
+            limpiarForm();
+        }
+
+        function actualizarGestionUI() {
+            const totals = registros.reduce((acc, r) => {
+                acc.c10 += r.q[0]; acc.c18 += r.q[1]; acc.c43 += r.q[2]; acc.bs += r.monto;
+                return acc;
+            }, { c10:0, c18:0, c43:0, bs:0 });
+
+            document.getElementById('totales-container').innerHTML = `
+                ${renderCard("Total 10KG", totals.c10, "emerald")}
+                ${renderCard("Total 18KG", totals.c18, "emerald")}
+                ${renderCard("Total 43KG", totals.c43, "emerald")}
+                ${renderCard("Total Recaudado", totals.bs.toFixed(2), "blue")}
+            `;
+
+            document.getElementById('count-pagos').innerText = `${registros.length} Registros`;
+            document.getElementById('lista-actividad').innerHTML = registros.map(r => `
+                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center">
+                    <div><p class="text-[10px] font-black text-white">${r.nombre}</p><p class="text-[8px] text-slate-500">REF: ${r.ref} | ${r.time}</p></div>
+                    <div class="text-right"><p class="text-[10px] font-black text-emerald-500">${r.monto} BS</p><p class="text-[8px] text-slate-600">Q: ${r.q.join('/')}</p></div>
+                </div>
+            `).join('');
+        }
+
+        function renderCard(label, val, col) {
+            return `<div class="glass p-4 rounded-2xl border-l-4 border-${col === 'emerald' ? 'emerald-500' : 'blue-500'}">
+                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">${label}</p>
+                <p class="text-xl font-black text-white">${val}</p>
+            </div>`;
+        }
+
+        // LÓGICA ESTADÍSTICA (PORTAL 1)
+        function renderStats() {
+            const ejes = {};
+            registros.forEach(r => {
+                if(!ejes[r.calle]) ejes[r.calle] = { c10:0, c18:0, c43:0, bs:0 };
+                ejes[r.calle].c10 += r.q[0]; ejes[r.calle].c18 += r.q[1]; ejes[r.calle].c43 += r.q[2]; ejes[r.calle].bs += r.monto;
+            });
+            document.getElementById('stats-table-body').innerHTML = Object.entries(ejes).map(([calle, d]) => `
+                <tr class="hover:bg-slate-900/50 transition-colors">
+                    <td class="p-6 font-black text-white">${calle}</td>
+                    <td class="p-6 text-center font-mono">${d.c10}</td>
+                    <td class="p-6 text-center font-mono">${d.c18}</td>
+                    <td class="p-6 text-center font-mono">${d.c43}</td>
+                    <td class="p-6 text-right font-black text-emerald-400">${d.bs.toFixed(2)} Bs</td>
+                </tr>
+            `).join('');
+        }
+
+        // LÓGICA DÍA DE DESPACHO
+        function renderDespacho() {
+            document.getElementById('despacho-table-body').innerHTML = registros.map((r, idx) => {
+                const totalPagado = r.q[0] + r.q[1] + r.q[2];
+                const diff = r.recibidos - totalPagado;
+                return `
+                <tr class="hover:bg-slate-900/50 transition-colors">
+                    <td class="p-6"><p class="font-black text-white">${r.nombre}</p><p class="text-[9px] text-slate-500 uppercase">${r.calle}</p></td>
+                    <td class="p-6 text-center font-mono text-slate-400">${r.q.join('/')} <span class="text-[9px]">(${totalPagado})</span></td>
+                    <td class="p-6 text-center">
+                        <input type="number" value="${r.recibidos}" onchange="updateRecibido(${idx}, this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded p-1 text-center font-black focus:border-rose-500 outline-none">
+                    </td>
+                    <td class="p-6 text-center font-black ${diff === 0 ? 'text-emerald-500' : 'text-rose-500'}">${diff === 0 ? '✓' : diff}</td>
+                    <td class="p-6 text-right">
+                        <span class="px-3 py-1 rounded-full text-[8px] font-black uppercase ${diff === 0 && r.recibidos > 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-800 text-slate-500'}">
+                            ${diff === 0 && r.recibidos > 0 ? 'CONCILIADO' : 'PENDIENTE'}
+                        </span>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateRecibido(idx, val) {
+            registros[idx].recibidos = parseInt(val) || 0;
+            renderDespacho();
+        }
+
+        function limpiarForm() {
+            ['ci', 'ref', 'monto-ref'].forEach(id => document.getElementById(id).value = "");
+            ['q10', 'q18', 'q43'].forEach(id => document.getElementById(id).value = 0);
+            document.getElementById('perfil').innerText = "";
+            validarTodo();
+        }
+
+        actualizarGestionUI();
     </script>
 </body>
 </html>
