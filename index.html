@@ -2,72 +2,223 @@
 <html lang="es" class="h-full bg-slate-950 text-slate-200">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HDC 1991 | Ecosistema de Gestión Dual</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .active-portal-gas { border-bottom: 3px solid #10b981; color: #10b981; }
-        .active-portal-clap { border-bottom: 3px solid #3b82f6; color: #3b82f6; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-active { border-bottom: 4px solid #10b981; color: white; background: rgba(16, 185, 129, 0.05); }
     </style>
 </head>
-<body class="min-h-full flex flex-col">
+<body class="min-h-screen flex flex-col">
 
-    <!-- NAVEGACIÓN SUPERIOR DINÁMICA -->
-    <nav class="glass-nav sticky top-0 z-50 w-full px-4 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center font-bold text-slate-950 text-xs">HDC</div>
-            <span class="text-sm font-semibold tracking-tighter uppercase">HDC 1991</span>
-        </div>
-
-        <!-- Selector de Portal -->
-        <div class="flex gap-6 h-full items-center text-[11px] font-bold tracking-widest uppercase">
-            <button id="nav-gas" class="h-full px-2 active-portal-gas transition-all duration-300">Gestión Gas</button>
-            <button id="nav-clap" class="h-full px-2 opacity-40 hover:opacity-100 transition-all duration-300">Gestión CLAP</button>
-        </div>
-
-        <div class="flex items-center gap-2">
-            <div class="text-right hidden sm:block">
-                <p class="text-[10px] text-slate-500 leading-none">Jefe de Comunidad</p>
-                <p class="text-xs font-medium">HDC User</p>
+    <nav class="w-full h-20 glass-card sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center font-black text-slate-950">HDC</div>
+                <div class="leading-none">
+                    <h2 class="text-sm font-bold tracking-tighter uppercase">Casco Central</h2>
+                    <p class="text-[9px] text-emerald-500 font-bold tracking-[0.2em]">23 DE ENERO</p>
+                </div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            
+            <div class="h-20 flex ml-10">
+                <button onclick="switchPortal('gas')" id="btn-gas" class="px-8 h-full text-xs font-black uppercase tracking-widest tab-active transition-all">Gestión Gas</button>
+                <button onclick="switchPortal('clap')" id="btn-clap" class="px-8 h-full text-xs font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Gestión CLAP</button>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-8">
+            <div id="reloj" class="text-right font-mono text-xs text-slate-500 hidden md:block"></div>
+            <div class="flex items-center gap-3 bg-slate-900/80 p-2 rounded-full border border-slate-800">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                </div>
+                <span class="text-xs font-bold mr-2">Admin_Master</span>
             </div>
         </div>
     </nav>
 
-    <!-- CONTENEDOR PRINCIPAL DE ALTO RENDIMIENTO -->
-    <main id="main-content" class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
+    <main class="w-full flex-grow p-6 space-y-6">
         
-        <!-- HEADER DE SECCIÓN DINÁMICO -->
-        <header class="mb-8 border-l-4 border-emerald-500 pl-4 py-2">
-            <h1 class="text-2xl font-bold text-white tracking-tight">Portal de Gestión de Gas</h1>
-            <p class="text-slate-400 text-sm">Ciclo de Cobro: Mayo 2026 | Municipio Guacara</p>
-        </header>
+        <section id="resumen-totales" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            </section>
 
-        <!-- ESPACIO PARA MÓDULOS (VERSIONES POSTERIORES) -->
-        <div id="app-viewport" class="grid grid-cols-1 gap-6">
-            <!-- Aquí inyectaremos los módulos de registro, pagos y balances -->
-            <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-12 text-center">
-                <p class="text-slate-500 italic">Arquitectura lista. Esperando inyección de lógica de datos...</p>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            
+            <div class="xl:col-span-8 glass-card rounded-3xl p-8">
+                <header class="mb-8">
+                    <h3 class="text-2xl font-black text-white italic">REGISTRO DE COBRO <span class="text-emerald-500">.GAS</span></h3>
+                    <p class="text-slate-500 text-xs uppercase tracking-widest">Ingrese los datos para procesar la transacción</p>
+                </header>
+
+                <form id="form-pago" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Número de Cédula</label>
+                            <input type="number" id="input-cedula" oninput="buscarHabitante(this.value)" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl text-2xl font-mono focus:border-emerald-500 outline-none transition-all" placeholder="00.000.000">
+                            <div id="perfil-habitante" class="mt-4 min-h-[80px]">
+                                </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Referencia Bancaria</label>
+                            <input type="text" id="input-ref" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-2xl font-bold focus:border-emerald-500 outline-none" placeholder="Últimos 6 dígitos">
+                        </div>
+                    </div>
+
+                    <div class="space-y-6 bg-slate-900/30 p-6 rounded-3xl border border-white/5">
+                        <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Selección de Cilindros</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="text-center">
+                                <span class="text-[10px] font-bold block mb-1">10KG</span>
+                                <input type="number" id="c10" value="0" min="0" onchange="calcularMonto()" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-center font-black text-emerald-400">
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-bold block mb-1">18KG</span>
+                                <input type="number" id="c18" value="0" min="0" onchange="calcularMonto()" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-center font-black text-emerald-400">
+                            </div>
+                            <div class="text-center">
+                                <span class="text-[10px] font-bold block mb-1">43KG</span>
+                                <input type="number" id="c43" value="0" min="0" onchange="calcularMonto()" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl text-center font-black text-emerald-400">
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-slate-800">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Monto a Cancelar</label>
+                            <div class="flex items-end gap-2">
+                                <input type="number" id="input-monto" class="w-full bg-transparent text-5xl font-black outline-none text-white" value="0.00" readonly>
+                                <span class="text-xl font-bold text-slate-600 pb-2">BS</span>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="procesarPago()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-emerald-900/20 transition-all active:scale-95">
+                            Confirmar y Registrar
+                        </button>
+                    </div>
+                </form>
             </div>
-        </div>
 
+            <div class="xl:col-span-4 glass-card rounded-3xl overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-slate-800 bg-slate-900/50">
+                    <h4 class="text-xs font-black uppercase tracking-widest">Actividad Reciente</h4>
+                </div>
+                <div id="lista-pagos" class="flex-grow overflow-y-auto max-h-[600px] p-4 space-y-3">
+                    </div>
+            </div>
+
+        </div>
     </main>
 
-    <!-- FOOTER MÓVIL OPTIMIZADO -->
-    <footer class="p-6 text-center text-slate-600 text-[10px] uppercase tracking-[0.2em] border-t border-slate-900">
-        Ecosistema HDC 1991 &copy; 2026 | Trazabilidad Extraordinaria
-    </footer>
+    <script>
+        // DATA MAESTRA (Viene del archivo que subió el Master)
+        const habitantes = [
+            { id: 1, nombre: "ANA CASTILLO", cedula: "12345678", calle: "ZAMORA" },
+            { id: 2, nombre: "MARTHA CORONEL", cedula: "87654321", calle: "BRUZUAL" },
+            { id: 3, nombre: "PEDRO MUJICA", cedula: "11223344", calle: "PLAZA" }
+        ];
 
+        // ESTADO GLOBAL
+        let pagos = [];
+        const precios = { c10: 25, c18: 50, c43: 120 };
+
+        function buscarHabitante(ci) {
+            const h = habitantes.find(item => item.cedula === ci);
+            const perfil = document.getElementById('perfil-habitante');
+            if (h) {
+                perfil.innerHTML = `
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl animate-fade-in">
+                        <p class="text-emerald-500 text-[10px] font-black uppercase">${h.calle}</p>
+                        <p class="text-white font-bold">${h.nombre}</p>
+                    </div>`;
+            } else {
+                perfil.innerHTML = `<p class="text-slate-600 text-xs italic p-4">Esperando cédula válida...</p>`;
+            }
+        }
+
+        function calcularMonto() {
+            const total = (document.getElementById('c10').value * precios.c10) +
+                          (document.getElementById('c18').value * precios.c18) +
+                          (document.getElementById('c43').value * precios.c43);
+            document.getElementById('input-monto').value = total.toFixed(2);
+        }
+
+        function procesarPago() {
+            const ci = document.getElementById('input-cedula').value;
+            const ref = document.getElementById('input-ref').value;
+            const h = habitantes.find(item => item.cedula === ci);
+
+            if (!h || !ref) return alert("Datos incompletos");
+
+            const nuevoPago = {
+                nombre: h.nombre,
+                cedula: ci,
+                c10: parseInt(document.getElementById('c10').value),
+                c18: parseInt(document.getElementById('c18').value),
+                c43: parseInt(document.getElementById('c43').value),
+                monto: parseFloat(document.getElementById('input-monto').value),
+                ref: ref,
+                hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            pagos.unshift(nuevoPago);
+            actualizarUI();
+            resetForm();
+        }
+
+        function actualizarUI() {
+            // Actualizar Totales
+            const stats = pagos.reduce((acc, p) => {
+                acc.t10 += p.c10; acc.t18 += p.c18; acc.t43 += p.c43; acc.dinero += p.monto;
+                return acc;
+            }, { t10: 0, t18: 0, t43: 0, dinero: 0 });
+
+            document.getElementById('resumen-totales').innerHTML = `
+                ${renderStatCard("Total 10KG", stats.t10, "emerald")}
+                ${renderStatCard("Total 18KG", stats.t18, "emerald")}
+                ${renderStatCard("Total 43KG", stats.t43, "emerald")}
+                ${renderStatCard("Recaudación (BS)", stats.dinero.toFixed(2), "blue")}
+            `;
+
+            // Actualizar Lista
+            document.getElementById('lista-pagos').innerHTML = pagos.map(p => `
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                    <div>
+                        <p class="text-xs font-bold text-white">${p.nombre}</p>
+                        <p class="text-[10px] text-slate-500">Ref: ${p.ref} | ${p.hora}</p>
+                    </div>
+                    <div class="text-right font-mono">
+                        <p class="text-xs text-emerald-500 font-bold">${p.monto} BS</p>
+                        <p class="text-[9px] text-slate-600">${p.c10} / ${p.c18} / ${p.43}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderStatCard(title, val, color) {
+            return `
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-${color}-500">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${title}</p>
+                    <p class="text-3xl font-black text-white">${val}</p>
+                </div>
+            `;
+        }
+
+        function resetForm() {
+            document.getElementById('form-pago').reset();
+            document.getElementById('perfil-habitante').innerHTML = '';
+            document.getElementById('input-monto').value = "0.00";
+        }
+
+        // Reloj en vivo
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleString();
+        }, 1000);
+
+        // Inicializar
+        actualizarUI();
+    </script>
 </body>
 </html>
