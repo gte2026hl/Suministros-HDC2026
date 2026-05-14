@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-200">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>HDC 2026 - Trazabilidad Inmutable</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-active { border-bottom: 3px solid #10b981 !important; color: #10b981 !important; font-weight: 900 !important; }
+        .sello-bg { background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .sello-text { background: linear-gradient(to right, #f8fafc 0%, #94a3b8 40%, #2563eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input { font-size: 16px !important; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .loading-bar { height: 3px; background: linear-gradient(to right, #fbbf24, #10b981); width: 0%; transition: width 0.4s ease; position: fixed; top: 0; left: 0; z-index: 200; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden bg-slate-950">
+
+    <div id="loader" class="loading-bar"></div>
+
+    <div id="login-view" class="fixed inset-0 z-[100] bg-slate-950 flex items-center justify-center p-4">
+        <div class="max-w-md w-full glass p-10 rounded-[3rem] text-center space-y-8 border border-white/10 shadow-2xl">
+            <div class="sello-bg w-28 h-28 rounded-2xl flex items-center justify-center mx-auto transform rotate-3 scale-110">
+                <span class="sello-text text-2xl">HDC<br>2026</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black uppercase tracking-tighter text-white italic">Acceso al Sistema</h1>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-2 italic">Ecosistema Inmutable</p>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="user-input" placeholder="Usuario" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold uppercase tracking-widest text-white">
+                <div class="relative">
+                    <input type="password" id="pass-input" placeholder="Contraseña" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold tracking-widest text-white">
+                    <button onclick="togglePass()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500" id="eye-btn">👁️</button>
+                </div>
+                <button onclick="intentarLogin()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] shadow-xl shadow-amber-900/20 active:scale-95 transition-all">Entrar al Portal</button>
+            </div>
+            <p class="text-[8px] text-slate-600 font-bold uppercase tracking-widest">HDC 2026 © Copyright | Trazabilidad Extraordinaria</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden min-h-screen flex flex-col">
+        <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800 no-print">
+            <div class="flex items-center gap-4">
+                <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
+                <div class="leading-none border-l border-slate-800 pl-4 ml-2">
+                    <h2 id="nav-comunidad" class="text-[10px] font-black tracking-[0.2em] uppercase text-slate-200 truncate max-w-[150px]">---</h2>
+                    <p id="nav-sector" class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest mt-1">---</p>
+                </div>
+            </div>
+            <div id="nav-container" class="flex gap-2 h-full items-center"></div>
+        </nav>
+
+        <main class="p-6 flex-grow space-y-6" id="app-view"></main>
+
+        <footer class="p-8 text-center text-slate-700 text-[9px] font-black uppercase tracking-[0.5em] glass border-t border-slate-900 no-print">
+            HDC 2026 © Copyright | Trazabilidad Inmutable
+        </footer>
+    </div>
+
+    <script>
+        const SB_URL = "https://wokszafewnnsmmhsvsqf.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indva3N6YWZld25uc21taHN2c3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMjEsImV4cCI6MjA5NDI2NTIyMX0.gYZ6rVgc74nE1Kxlykvr_beItgA6ndfv2bMs3godQK0";
+        const _sb = supabase.createClient(SB_URL, SB_KEY);
+
+        let uSession = null;
+        let censo = [];
+        let pagos = [];
+        let config = {};
+        let selectedComId = null;
+
+        // --- PERSISTENCIA Y MOTOR INICIAL ---
+        window.onload = async () => {
+            const saved = localStorage.getItem('hdc_session');
+            if(saved) {
+                uSession = JSON.parse(saved);
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                updateLoader(40);
+                await syncData();
+                renderNav();
+                uSession.role === 'MASTER' ? showMasterDashboard() : showJefe('gestion');
+                updateLoader(100);
+            }
+        }
+
+        function updateLoader(pct) { document.getElementById('loader').style.width = pct + "%"; if(pct === 100) setTimeout(()=> document.getElementById('loader').style.width = "0%", 400); }
+        function togglePass() {
+            const input = document.getElementById('pass-input');
+            const btn = document.getElementById('eye-btn');
+            if(input.type === "password") { input.type = "text"; btn.innerText = "🔒"; }
+            else { input.type = "password"; btn.innerText = "👁️"; }
+        }
+
+        async function intentarLogin() {
+            updateLoader(30);
+            const u = document.getElementById('user-input').value.toLowerCase().trim();
+            const p = document.getElementById('pass-input').value.trim();
+            const { data } = await _sb.from('perfiles').select('*').eq('usuario', u).eq('password', p).maybeSingle();
+            
+            if (data) {
+                uSession = data;
+                localStorage.setItem('hdc_session', JSON.stringify(data));
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                await syncData();
+                renderNav();
+                uSession.role === 'MASTER' ? showMasterDashboard() : showJefe('gestion');
+                updateLoader(100);
+            } else {
+                updateLoader(0);
+                alert("Acceso Denegado.");
+            }
+        }
+
+        async function syncData() {
+            const filterId = uSession.id;
+            const { data: c } = await _sb.from('configuracion').select('*').eq('comunidad_id', filterId).maybeSingle();
+            const { data: h } = await _sb.from('habitantes').select('*').eq('comunidad_id', filterId);
+            const { data: pg } = await _sb.from('pagos').select('*').eq('comunidad_id', filterId).order('created_at', { ascending: false });
+            
+            config = c || { p10: 1500, p18: 2500, p43: 5500 }; 
+            censo = h || []; 
+            pagos = pg || [];
+
+            document.getElementById('nav-comunidad').innerText = uSession.comunidad_name || "ADMIN MASTER";
+            document.getElementById('nav-sector').innerText = uSession.municipio_name || "CENTRAL";
+        }
+
+        function renderNav() {
+            const c = document.getElementById('nav-container');
+            if(uSession.role === 'MASTER') {
+                c.innerHTML = `<button onclick="showMasterDashboard()" id="n-master" class="h-full px-4 text-[9px] font-black uppercase tab-active">Admin Central</button>`;
+            } else {
+                c.innerHTML = `
+                    <button onclick="showJefe('gestion')" id="nav-gestion" class="h-full px-4 text-[9px] font-black uppercase tracking-widest tab-active transition-all">Cobros</button>
+                    <button onclick="showJefe('stats')" id="nav-stats" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Estadísticas</button>
+                    <button onclick="showJefe('despacho')" id="nav-despacho" class="h-full px-4 text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Despacho</button>
+                `;
+            }
+            c.innerHTML += `<button onclick="logout()" class="h-full px-4 text-rose-500 text-lg">✕</button>`;
+        }
+
+        function logout() { localStorage.removeItem('hdc_session'); location.reload(); }
+
+        function setActiveTab(id) {
+            if(uSession.role === 'MASTER') return;
+            ['gestion', 'stats', 'despacho'].forEach(n => {
+                const btn = document.getElementById(`nav-${n}`);
+                if(btn) { btn.classList.remove('tab-active'); btn.classList.add('text-slate-500'); }
+            });
+            const activeBtn = document.getElementById(`nav-${id}`);
+            if(activeBtn) { activeBtn.classList.add('tab-active'); activeBtn.classList.remove('text-slate-500'); }
+        }
+
+        // --- PORTAL MASTER (Preservando Multi-Ecosistema) ---
+        async function showMasterDashboard() {
+            updateLoader(50);
+            const { data: comunidades } = await _sb.from('perfiles').select('*').eq('role', 'JEFE');
+            updateLoader(100);
+            document.getElementById('app-view').innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
+                    <div class="glass p-8 rounded-[2.5rem] space-y-6">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-amber-500 italic">Configuración Territorial</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="nu-u" placeholder="USUARIO JEFE" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase text-white">
+                            <input type="text" id="nu-p" placeholder="PASSWORD" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs text-white">
+                            <input type="text" id="nu-c" placeholder="NOMBRE COMUNIDAD" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase text-white">
+                            <input type="text" id="nu-m" placeholder="MUNICIPIO / SECTOR" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-xl text-xs uppercase text-white">
+                        </div>
+                        <button onclick="crearComunidad()" class="w-full bg-white text-slate-950 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest">Activar Ecosistema</button>
+                    </div>
+                    <div class="lg:col-span-2 glass rounded-[2.5rem] p-8 overflow-hidden flex flex-col">
+                        <h3 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-6 italic">Ecosistemas en Nube</h3>
+                        <div class="grid grid-cols-1 gap-3">
+                            ${comunidades.map(c => `
+                                <div class="glass p-5 rounded-[1.8rem] border-l-4 border-amber-500 flex justify-between items-center">
+                                    <div class="max-w-[60%]">
+                                        <h4 class="text-[11px] font-black text-white uppercase truncate">${c.comunidad_name}</h4>
+                                        <p class="text-[8px] text-emerald-500 font-bold uppercase mt-1">${c.municipio_name}</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button onclick="prepararCarga('${c.id}')" class="bg-slate-800 text-white p-3 rounded-xl font-black text-[9px] uppercase hover:bg-emerald-600 transition-all">Excel</button>
+                                        <button onclick="borrarComunidad('${c.id}')" class="bg-rose-500/10 text-rose-500 p-3 rounded-xl font-black text-[9px]">✕</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        async function crearComunidad() {
+            const u = document.getElementById('nu-u').value.toLowerCase().trim();
+            const p = document.getElementById('nu-p').value.trim();
+            const c = document.getElementById('nu-c').value.toUpperCase().trim();
+            const m = document.getElementById('nu-m').value.toUpperCase().trim();
+            if(!u || !p || !c || !m) return alert("Faltan datos");
+            updateLoader(40);
+            const { data: newUser } = await _sb.from('perfiles').insert([{ usuario: u, password: p, role: 'JEFE', comunidad_name: c, municipio_name: m }]).select().single();
+            if(newUser) {
+                await _sb.from('configuracion').insert([{ comunidad_id: newUser.id }]);
+                updateLoader(100);
+                showMasterDashboard();
+            }
+        }
+
+        function prepararCarga(comId) {
+            selectedComId = comId;
+            const input = document.createElement('input');
+            input.type = 'file'; input.accept = '.xlsx';
+            input.onchange = (e) => ejecutarExcel(e.target.files[0]);
+            input.click();
+        }
+
+        async function ejecutarExcel(file) {
+            updateLoader(30);
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header:1});
+                const rows = json.slice(1).map(r => ({
+                    nombre: String(r[0] || "").trim(),
+                    calle: String(r[1] || "").trim(),
+                    ci: String(r[2] || "").trim(),
+                    comunidad_id: selectedComId
+                })).filter(h => h.ci && h.ci !== "undefined");
+                await _sb.from('habitantes').delete().eq('comunidad_id', selectedComId);
+                await _sb.from('habitantes').insert(rows);
+                updateLoader(100);
+                alert("Censo Cargado Correctamente.");
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- PORTAL JEFE (Exactitud en Lógica de Cobros, Stats y Despacho) ---
+        function showJefe(sec) {
+            setActiveTab(sec);
+            const view = document.getElementById('app-view');
+            if(sec === 'gestion') {
+                view.innerHTML = `
+                <div id="sec-gestion" class="fade-in space-y-6">
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-4">
+                        <div class="xl:col-span-4 glass p-4 rounded-3xl border-l-4 border-amber-500">
+                            <div class="flex justify-between items-center mb-3">
+                                <p class="text-[9px] font-black text-amber-500 uppercase tracking-widest">Precios Ciclo</p>
+                                <button onclick="guardarPrecios()" class="bg-emerald-600 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase">Fijar</button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-600 font-bold block uppercase">10KG</label><input type="number" id="p10" value="${config.p10}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs outline-none text-center"></div>
+                                <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-600 font-bold block uppercase">18KG</label><input type="number" id="p18" value="${config.p18}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs outline-none text-center"></div>
+                                <div class="bg-slate-950/50 p-2 rounded-xl border border-slate-800 text-center"><label class="text-[7px] text-slate-600 font-bold block uppercase">43KG</label><input type="number" id="p43" value="${config.p43}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs outline-none text-center"></div>
+                            </div>
+                        </div>
+                        <div id="totales-container" class="xl:col-span-8 grid grid-cols-4 gap-2"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                        <div class="xl:col-span-8 glass rounded-[2.5rem] p-10">
+                            <div class="flex justify-between items-start mb-8">
+                                <h3 class="text-xl font-black italic uppercase tracking-tighter">Validador Tactical .01</h3>
+                                <div id="status-validacion" class="px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase tracking-widest transition-all">Esperando Cédula</div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-3">Identificación Vecino</label>
+                                        <input type="number" id="ci" oninput="lookCI(this.value)" class="w-full bg-slate-950 border border-slate-800 p-5 rounded-2xl text-2xl mono focus:border-amber-500 outline-none text-white" placeholder="00000000">
+                                        <div id="v-name" class="mt-4 text-[11px] font-black text-emerald-400 min-h-[1.5rem] italic uppercase"></div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Referencia</label><input type="text" id="ref" class="w-full bg-slate-950 border border-slate-800 p-4 rounded-xl mono outline-none text-white uppercase" placeholder="Bancaria"></div>
+                                        <div><label class="text-[9px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Monto</label><input type="number" id="monto-ref" oninput="validarCobro()" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl font-black text-white outline-none" placeholder="0.00"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-950/40 p-8 rounded-3xl border border-white/5 space-y-6 text-center">
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <div class="text-center"><span class="text-[8px] font-bold opacity-50 block mb-2 uppercase">10kg</span><input type="number" id="q10" value="0" min="0" oninput="validarCobro()" class="w-full bg-slate-900 p-4 rounded-xl text-center font-black text-emerald-500 outline-none"></div>
+                                        <div class="text-center"><span class="text-[8px] font-bold opacity-50 block mb-2 uppercase">18kg</span><input type="number" id="q18" value="0" min="0" oninput="validarCobro()" class="w-full bg-slate-900 p-4 rounded-xl text-center font-black text-emerald-500 outline-none"></div>
+                                        <div class="text-center"><span class="text-[8px] font-bold opacity-50 block mb-2 uppercase">43kg</span><input type="number" id="q43" value="0" min="0" oninput="validarCobro()" class="w-full bg-slate-900 p-4 rounded-xl text-center font-black text-emerald-500 outline-none"></div>
+                                    </div>
+                                    <div class="pt-6 border-t border-slate-800 flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Requerido:</span><span id="v-calc" class="text-3xl font-black mono text-white">0.00</span></div>
+                                    <button onclick="ejecutarCobro()" id="v-btn" disabled class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] transition-all">Registrar Transacción</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="xl:col-span-4 glass rounded-[2.5rem] p-8 overflow-hidden flex flex-col">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest mb-8 flex justify-between"><span>Historial Activo</span><span id="count-pagos" class="text-emerald-500">0 Registros</span></h4>
+                            <div id="h-list" class="space-y-4 max-h-[500px] overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>`;
+                updateJefeUI();
+            } else if (sec === 'stats') {
+                const paid = pagos.map(p => p.ci);
+                const pend = censo.filter(h => !paid.includes(h.ci));
+                view.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <div class="flex justify-end gap-2">
+                        <button onclick="generarPDFStats()" class="bg-rose-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">PDF Recaudación</button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="glass p-8 rounded-[2.5rem]">
+                            <h3 class="text-xl font-black italic mb-6">RECAUDACIÓN POR CALLE</h3>
+                            <table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase font-black tracking-widest"><tr><th class="p-4">Calle</th><th class="p-4 text-center">10kg</th><th class="p-4 text-center">18kg</th><th class="p-4 text-center">43kg</th><th class="p-4 text-right">Monto</th></tr></thead>
+                            <tbody id="stats-table-body" class="divide-y divide-slate-900">
+                                ${Object.entries(pagos.reduce((a,p)=>{const c=censo.find(h=>h.ci===p.ci)?.calle||'S/C'; if(!a[c])a[c]={c10:0,c18:0,c43:0,bs:0}; a[c].c10+=p.q10; a[c].c18+=p.q18; a[c].c43+=p.q43; a[c].bs+=p.monto; return a;},{})).map(([calle, d]) => `<tr><td class="p-4 font-bold text-white uppercase">${calle}</td><td class="p-4 text-center font-mono">${d.c10}</td><td class="p-4 text-center font-mono">${d.c18}</td><td class="p-4 text-center font-mono">${d.c43}</td><td class="p-4 text-right font-black text-emerald-500">${d.bs.toFixed(2)}</td></tr>`).join('')}
+                            </tbody></table>
+                        </div>
+                        <div class="glass p-8 rounded-[2.5rem] border-l-4 border-rose-500">
+                            <h3 class="text-xl font-black italic mb-6 text-rose-500 uppercase">Beneficiarios Pendientes (${pend.length})</h3>
+                            <div class="overflow-y-auto max-h-[400px]">
+                                <table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase font-black tracking-widest"><tr><th class="p-4">Nombre</th><th class="p-4">Cédula</th><th class="p-4 text-right">Calle</th></tr></thead>
+                                <tbody class="divide-y divide-slate-900">
+                                    ${pend.map(h => `<tr><td class="p-4 font-bold text-white/80 uppercase">${h.nombre}</td><td class="p-4 mono text-rose-400 opacity-60">${h.ci}</td><td class="p-4 text-right text-[10px] text-slate-500 uppercase">${h.calle}</td></tr>`).join('') || '<tr><td colspan="3" class="p-8 text-center text-emerald-500 italic uppercase">Recaudación Completa 100%</td></tr>'}
+                                </tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            } else if (sec === 'despacho') {
+                view.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <div class="flex justify-end"><button onclick="generarPDFDespacho()" class="bg-amber-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">PDF Conciliación</button></div>
+                    <div class="glass p-10 rounded-[2.5rem]">
+                        <h3 class="text-xl font-black italic mb-6 text-rose-500 uppercase">Conciliación de Despacho</h3>
+                        <table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase font-black tracking-widest"><tr><th class="p-4">Beneficiario</th><th class="p-4 text-center">Pagados (10/18/43)</th><th class="p-4 text-center">Recibidos</th><th class="p-4 text-center">Diff</th><th class="p-4 text-right">Estatus</th></tr></thead>
+                        <tbody id="despacho-table-body" class="divide-y divide-slate-900">
+                            ${pagos.map((p, idx) => {
+                                const h = censo.find(x => x.ci === p.ci);
+                                const totalPagado = p.q10 + p.q18 + p.q43;
+                                const diff = p.recibidos - totalPagado;
+                                return `<tr><td class="p-4"><b class="uppercase font-black text-white">${h?.nombre || p.ci}</b><br><small class="text-slate-500 uppercase font-bold">${h?.calle}</small></td><td class="p-4 text-center font-mono text-slate-400">${p.q10}/${p.q18}/${p.q43}</td><td class="p-4 text-center"><input type="number" value="${p.recibidos}" onchange="updateRecibido('${p.id}', this.value)" class="w-12 bg-slate-900 border border-slate-800 rounded p-1 text-center font-black text-white outline-none focus:border-rose-500"></td><td class="p-4 text-center font-black ${diff===0?'text-emerald-500':'text-rose-500'}">${diff===0?'✓':diff}</td><td class="p-4 text-right"><span class="px-3 py-1 rounded-full text-[8px] font-black ${diff===0 && p.recibidos > 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-800 text-slate-500'} uppercase">${diff===0 && p.recibidos > 0 ? 'CONCILIADO' : 'PENDIENTE'}</span></td></tr>`;
+                            }).join('')}
+                        </tbody></table>
+                    </div>
+                </div>`;
+            }
+        }
+
+        async function guardarPrecios() {
+            updateLoader(50);
+            const p = { p10: document.getElementById('p10').value, p18: document.getElementById('p18').value, p43: document.getElementById('p43').value };
+            await _sb.from('configuracion').update(p).eq('comunidad_id', uSession.id);
+            await syncData(); updateLoader(100);
+        }
+
+        function lookCI(v) { 
+            const h = censo.find(x => x.ci === v); 
+            document.getElementById('v-name').innerText = h ? `${h.nombre} • ${h.calle}` : "Cédula no en censo Master"; 
+            validarCobro(); 
+        }
+
+        function validarCobro() {
+            const p10 = parseFloat(document.getElementById('p10').value) || 0;
+            const p18 = parseFloat(document.getElementById('p18').value) || 0;
+            const p43 = parseFloat(document.getElementById('p43').value) || 0;
+            const q10 = parseInt(document.getElementById('q10').value) || 0;
+            const q18 = parseInt(document.getElementById('q18').value) || 0;
+            const q43 = parseInt(document.getElementById('q43').value) || 0;
+            const mRef = parseFloat(document.getElementById('monto-ref').value) || 0;
+            const requerido = (q10 * p10) + (q18 * p18) + (q43 * p43);
+
+            document.getElementById('v-calc').innerText = requerido.toFixed(2) + " Bs";
+            const btn = document.getElementById('v-btn'); const status = document.getElementById('status-validacion');
+            
+            if (requerido > 0 && Math.abs(mRef - requerido) < 0.1) {
+                status.innerText = "✓ MONTO COINCIDE"; status.className = "px-5 py-2 rounded-full text-[9px] font-black bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20";
+                btn.disabled = false; btn.className = "w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest cursor-pointer";
+            } else if (requerido > 0) {
+                status.innerText = "✗ ERROR EN MONTO"; status.className = "px-5 py-2 rounded-full text-[9px] font-black bg-rose-500 text-white shadow-lg shadow-rose-950/20";
+                btn.disabled = true; btn.className = "w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest";
+            } else {
+                status.innerText = "ESPERANDO CARGA"; status.className = "px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase tracking-widest";
+                btn.disabled = true;
+            }
+        }
+
+        async function ejecutarCobro() {
+            const ciVal = document.getElementById('ci').value;
+            const hFound = censo.find(p => p.ci === ciVal);
+            if(!hFound) return alert("Cédula no válida");
+            updateLoader(40);
+            const d = { ci: ciVal, referencia: document.getElementById('ref').value, monto: parseFloat(document.getElementById('monto-ref').value), q10: parseInt(document.getElementById('q10').value), q18: parseInt(document.getElementById('q18').value), q43: parseInt(document.getElementById('q43').value), comunidad_id: uSession.id, registrado_por: uSession.usuario };
+            await _sb.from('pagos').insert([d]); 
+            await syncData(); 
+            showJefe('gestion'); 
+            updateLoader(100);
+        }
+
+        async function updateRecibido(pid, val) { await _sb.from('pagos').update({ recibidos: parseInt(val) || 0 }).eq('id', pid); await syncData(); showJefe('despacho'); }
+
+        function updateJefeUI() {
+            const t = pagos.reduce((a,p)=>({c10:a.c10+p.q10, c18:a.c18+p.q18, c43:a.c43+p.q43, bs:a.bs+p.monto}), {c10:0,c18:0,c43:0,bs:0});
+            document.getElementById('totales-container').innerHTML = `
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">10kg</p><p class="text-xl font-black">${t.c10}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">18kg</p><p class="text-xl font-black">${t.c18}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase">43kg</p><p class="text-xl font-black">${t.c43}</p></div>
+                <div class="glass p-4 rounded-2xl border-l-4 border-blue-500"><p class="text-[8px] font-black text-slate-500 uppercase">Total Bs</p><p class="text-xl font-black">${t.bs.toFixed(2)}</p></div>`;
+            
+            document.getElementById('count-pagos').innerText = `${pagos.length} Registros`;
+            document.getElementById('h-list').innerHTML = pagos.map(p => `
+                <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center fade-in">
+                    <div><p class="text-[10px] font-black text-white uppercase">${censo.find(h=>h.ci===p.ci)?.nombre || p.ci}</p><p class="text-[8px] text-slate-500">REF: ${p.referencia} | ${new Date(p.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div>
+                    <p class="text-[11px] font-black text-emerald-500">${p.monto.toFixed(2)} BS</p>
+                </div>`).join('');
+        }
+
+        // --- MOTOR PDF PROFESIONAL ---
+        function generarPDFStats() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(16); doc.text("HDC 2026 - REPORTE RECAUDACIÓN", 14, 20);
+            doc.setFontSize(10); doc.text(`Comunidad: ${uSession.comunidad_name} | Municipio: ${uSession.municipio_name}`, 14, 30);
+            const rows = pagos.map(p => [censo.find(h=>h.ci===p.ci)?.nombre || p.ci, censo.find(h=>h.ci===p.ci)?.calle || '-', p.referencia, p.monto.toFixed(2) + " Bs"]);
+            doc.autoTable({ startY: 40, head: [['Beneficiario', 'Calle', 'Referencia', 'Monto']], body: rows, theme: 'striped', headStyles: {fillColor:[16,185,129]} });
+            doc.save(`HDC_Recaudacion_${uSession.comunidad_name}.pdf`);
+        }
+
+        function generarPDFDespacho() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.setFontSize(16); doc.text("HDC 2026 - CONCILIACIÓN DESPACHO", 14, 20);
+            doc.setFontSize(10); doc.text(`Comunidad: ${uSession.comunidad_name} | Fecha: ${new Date().toLocaleDateString()}`, 14, 30);
+            const rows = pagos.map(p => [censo.find(h=>h.ci===p.ci)?.nombre || p.ci, `${p.q10}/${p.q18}/${p.q43}`, p.recibidos, (p.recibidos==(p.q10+p.q18+p.q43)?'OK':'DIF')]);
+            doc.autoTable({ startY: 40, head: [['Beneficiario', 'Cilindros', 'Recibidos', 'Status']], body: rows, headStyles: {fillColor:[180,83,9]} });
+            doc.save(`HDC_Despacho_${uSession.comunidad_name}.pdf`);
+        }
+    </script>
+</body>
+</html>
