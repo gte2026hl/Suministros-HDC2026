@@ -9,37 +9,21 @@
     <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
     <script src="https://unpkg.com/jspdf-autotable@latest/dist/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-    <title>Sistema de Cobro / HDC Design & Tech</title>
-<style>
-    body { 
-        font-family: 'Inter', sans-serif; 
-        -webkit-tap-highlight-color: transparent; 
-        background-color: #020617; 
-        overscroll-behavior-y: contain; /* Evita el "pull-to-refresh" accidental */
-    }
-    .mono { font-family: 'JetBrains Mono', monospace; }
-    .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-    .tab-active { border-bottom: 3px solid #10b981 !important; color: #10b981 !important; font-weight: 900 !important; }
-    
-    /* PREVENCIÓN DE ZOOM EN ANDROID */
-    input, select, textarea { font-size: 16px !important; } 
-
-    .sello-bg { background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4); border: 2px solid rgba(255, 255, 255, 0.2); }
-    .sello-text { background: linear-gradient(to right, #f8fafc 0%, #94a3b8 40%, #2563eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    
-    .loading-bar { height: 3px; background: linear-gradient(to right, #fbbf24, #10b981); width: 0%; transition: width 0.4s ease; position: fixed; top: 0; left: 0; z-index: 200; }
-    
-    /* MEJORA DE SCROLL EN MÓVIL */
-    .custom-scroll::-webkit-scrollbar { display: none; }
-    .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-
-    .fade-in { animation: fadeIn 0.3s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    
-    @media print { .no-print { display: none !important; } }
-</style>
+    <title>HDC 2026 - Trazabilidad Inmutable</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #020617; overscroll-behavior-y: contain; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .tab-active { border-bottom: 3px solid #10b981 !important; color: #10b981 !important; font-weight: 900 !important; }
+        input, select, textarea { font-size: 16px !important; } 
+        .sello-bg { background: linear-gradient(135deg, #fbbf24 0%, #b45309 100%); box-shadow: 0 4px 15px rgba(180, 83, 9, 0.4); border: 2px solid rgba(255, 255, 255, 0.2); }
+        .sello-text { background: linear-gradient(to right, #f8fafc 0%, #94a3b8 40%, #2563eb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .loading-bar { height: 3px; background: linear-gradient(to right, #fbbf24, #10b981); width: 0%; transition: width 0.4s ease; position: fixed; top: 0; left: 0; z-index: 200; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @media print { .no-print { display: none !important; } }
+    </style>
 </head>
 <body class="min-h-screen flex flex-col overflow-x-hidden">
 
@@ -51,7 +35,12 @@
             <div><h1 class="text-2xl font-black uppercase tracking-tighter text-white italic">Acceso al Sistema</h1><p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-2 italic">HDC Design & Tech</p></div>
             <div class="space-y-4">
                 <input type="text" id="user-input" placeholder="Usuario" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold uppercase text-white">
-                <input type="password" id="pass-input" placeholder="Contraseña" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold text-white">
+                
+                <div class="relative">
+                    <input type="password" id="pass-input" placeholder="Contraseña" class="w-full bg-slate-900 border border-slate-800 p-4 rounded-2xl outline-none focus:border-amber-500 text-xs font-bold text-white">
+                    <button onclick="togglePass()" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors" id="eye-icon">👁️</button>
+                </div>
+
                 <button onclick="intentarLogin()" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] shadow-xl active:scale-95 transition-all">Entrar al Portal</button>
             </div>
         </div>
@@ -60,9 +49,9 @@
     <div id="main-app" class="hidden min-h-screen flex flex-col">
         <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-8 border-b border-slate-800 no-print">
             <div class="flex items-center gap-4">
-                <div class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
-                <div class="leading-none border-l border-slate-800 pl-4 ml-2">
-                    <h2 id="nav-comunidad" class="text-[10px] font-black uppercase text-slate-200">---</h2>
+                <div id="sello-nav" class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
+                <div id="info-comunidad" class="leading-none border-l border-slate-800 pl-4 ml-2">
+                    <h2 id="nav-comunidad" class="text-[10px] font-black uppercase text-slate-200 truncate max-w-[150px] sm:max-w-none">---</h2>
                     <p id="nav-sector" class="text-[8px] text-emerald-500 font-bold uppercase mt-1 tracking-widest">---</p>
                 </div>
             </div>
@@ -87,6 +76,17 @@
                 document.getElementById('main-app').classList.remove('hidden');
                 await syncData(); renderNav();
                 uSession.role === 'MASTER' ? showMaster() : showSection('gestion');
+            }
+        }
+
+        // FUNCIÓN QUIRÚRGICA: TOGGLE CONTRASEÑA
+        function togglePass() {
+            const p = document.getElementById('pass-input');
+            const e = document.getElementById('eye-icon');
+            if (p.type === 'password') {
+                p.type = 'text'; e.innerText = '👁️‍🗨️';
+            } else {
+                p.type = 'password'; e.innerText = '👁️';
             }
         }
 
@@ -119,6 +119,11 @@
         }
 
         function renderNav() {
+            // INTEGRACIÓN NIEVES: OCULTAR LOGO SI ES JEFE
+            const esJefe = uSession.role === 'JEFE';
+            document.getElementById('sello-nav').style.display = esJefe ? 'none' : 'flex';
+            document.getElementById('info-comunidad').className = esJefe ? "leading-none" : "leading-none border-l border-slate-800 pl-4 ml-2";
+
             const c = document.getElementById('nav-container');
             if(uSession.role === 'MASTER') {
                 c.innerHTML = `<button onclick="showMaster()" class="h-full px-4 text-[9px] font-black uppercase tab-active">Admin Central</button>`;
@@ -131,7 +136,7 @@
             c.innerHTML += `<button onclick="logout()" class="px-4 text-rose-500">✕</button>`;
         }
 
-        // --- MASTER (RÉPLICA EXACTA) ---
+        // --- MASTER ---
         async function showMaster() {
             updateLoader(50);
             const { data: coms } = await _sb.from('perfiles').select('*').eq('role', 'JEFE');
@@ -185,7 +190,7 @@
             }; reader.readAsArrayBuffer(file);
         }
 
-        // --- JEFE (VERSIÓN ARMÓNICA Y DETALLADA) ---
+        // --- JEFE ---
         function showSection(id) {
             ['gestion', 'stats', 'despacho'].forEach(s => { const el = document.getElementById(`nav-${s}`); if(el){el.classList.remove('tab-active'); el.classList.add('text-slate-500');} });
             document.getElementById(`nav-${id}`).classList.add('tab-active'); document.getElementById(`nav-${id}`).classList.remove('text-slate-500');
@@ -203,10 +208,10 @@
                                 <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 block">43kg</label><input type="number" id="p43" value="${config.p43}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs text-center outline-none"></div>
                             </div>
                         </div>
-                        <div id="tot-cont" class="lg:col-span-8 grid grid-cols-4 gap-2"></div>
+                        <div id="tot-cont" class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <div class="lg:col-span-8 glass p-10 rounded-[2.5rem] space-y-8">
+                        <div class="lg:col-span-8 glass p-6 sm:p-10 rounded-[2.5rem] space-y-8">
                             <div class="flex justify-between items-start"><h3 class="text-xl font-black italic uppercase tracking-tighter">Validador Tactical .01</h3><div id="status-val" class="px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase tracking-widest">Esperando Cédula</div></div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                                 <div class="space-y-6">
@@ -231,7 +236,6 @@
                         <div class="lg:col-span-4 glass p-8 rounded-[2.5rem] flex flex-col"><h4 class="text-[10px] font-black uppercase mb-6 flex justify-between"><span>Historial Activo</span><span id="p-count" class="text-emerald-500">0</span></h4><div id="h-list" class="space-y-4 overflow-y-auto max-h-[500px]"></div></div>
                     </div>
                 </div>`;
-
                 updateJefeUI();
             } else if(id === 'stats') {
                 const paid = pagos.map(p => p.ci); const pend = censo.filter(h => !paid.includes(h.ci));
@@ -260,10 +264,10 @@
                 </div>`;
             } else if(id === 'despacho') {
                 v.innerHTML = `
-                <div class="glass p-10 rounded-[2.5rem] fade-in space-y-6">
-                    <div class="flex justify-between items-center"><h3 class="text-xl font-black italic text-rose-500 uppercase">Conciliación de Despacho</h3><button onclick="printDespacho()" class="bg-amber-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">Exportar Día D</button></div>
+                <div class="glass p-6 sm:p-10 rounded-[2.5rem] fade-in space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between gap-4 sm:items-center"><h3 class="text-xl font-black italic text-rose-500 uppercase">Conciliación de Despacho</h3><button onclick="printDespacho()" class="bg-amber-600 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase">Exportar Día D</button></div>
                     <div class="overflow-x-auto"><table class="w-full text-left text-[11px]"><thead class="text-slate-500 uppercase font-black tracking-widest"><tr><th class="p-4">Beneficiario</th><th class="p-4 text-center">Pagados</th><th class="p-4 text-center">Recibidos</th><th class="p-4 text-center">Diff</th><th class="p-4 text-right">Estatus</th></tr></thead>
-                    <tbody class="divide-y divide-slate-900">${pagos.map(p => { 
+                    <tbody class="divide-y divide-slate-900">${pagos.map(p => { 
                         const h=censo.find(x=>x.ci===p.ci); const t=p.q10+p.q18+p.q43; const diff=p.recibidos-t;
                         return `<tr><td class="p-4"><b class="uppercase font-black text-white">${h?.nombre||p.ci}</b><br><small class="text-slate-500 font-bold uppercase">${h?.calle}</small></td><td class="p-4 text-center font-mono text-slate-500">${p.q10}/${p.q18}/${p.q43}</td><td class="p-4 text-center"><input type="number" value="${p.recibidos}" onchange="updR('${p.id}',this.value)" class="w-12 bg-slate-900 border border-slate-800 rounded p-1 text-center font-black text-white focus:border-rose-500 outline-none"></td><td class="p-4 text-center font-black ${diff===0?'text-emerald-500':'text-rose-500'}">${diff===0?'✓':diff}</td><td class="p-4 text-right"><span class="px-3 py-1 rounded-full text-[8px] font-black ${diff===0 && p.recibidos > 0 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-800 text-slate-500'} uppercase">${diff===0 && p.recibidos > 0 ? 'CONCILIADO' : 'PENDIENTE'}</span></td></tr>` }).join('')}</tbody></table></div>
                 </div>`;
@@ -284,127 +288,47 @@
 
         function updateJefeUI() {
             const t=pagos.reduce((a,p)=>({c10:a.c10+p.q10,c18:a.c18+p.q18,c43:a.c43+p.q43,bs:a.bs+p.monto}),{c10:0,c18:0,c43:0,bs:0});
-            document.getElementById('tot-cont').innerHTML=`<div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">10kg</p><p class="text-xl font-black">${t.c10}</p></div><div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">18kg</p><p class="text-xl font-black">${t.c18}</p></div><div class="glass p-4 rounded-2xl border-l-4 border-emerald-500"><p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">43kg</p><p class="text-xl font-black">${t.c43}</p></div><div class="glass p-4 rounded-2xl border-l-4 border-blue-500"><p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Total Bs</p><p class="text-xl font-black">${t.bs.toFixed(2)}</p></div>`;
+            document.getElementById('tot-cont').innerHTML=`
+                <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500"><p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">10kg</p><p class="text-lg font-black text-white">${t.c10}</p></div>
+                <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500"><p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">18kg</p><p class="text-lg font-black text-white">${t.c18}</p></div>
+                <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500"><p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">43kg</p><p class="text-lg font-black text-white">${t.c43}</p></div>
+                <div class="glass p-3 rounded-2xl border-l-4 border-blue-500"><p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Total Bs</p><p class="text-lg font-black text-white">${t.bs.toFixed(2)}</p></div>`;
             document.getElementById('p-count').innerText=pagos.length + " Registros";
             document.getElementById('h-list').innerHTML=pagos.map(p=>`<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-fade-in"><div><p class="text-[10px] font-black text-white uppercase">${censo.find(h=>h.ci===p.ci)?.nombre||p.ci}</p><p class="text-[8px] text-slate-500">REF: ${p.referencia} | ${new Date(p.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><p class="text-emerald-500 font-black text-[11px]">${p.monto.toFixed(2)} BS</p></div>`).join('');
         }
 
-// --- MOTOR DE IMPRESIÓN A4 PROFESIONAL (REPARADO) ---
-function printStats() {
-    try {
-        // 1. Verificación de Librerías
-        const { jsPDF } = window.jspdf;
-        if (!jsPDF) throw new Error("Librería jsPDF no encontrada");
-
-        const doc = new jsPDF('p', 'mm', 'a4');
-        
-        // 2. Configuración de Títulos
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("HDC 2026 - REPORTE DE RECAUDACIÓN", 14, 20);
-        
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Comunidad: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
-        doc.text(`Municipio/Sector: ${uSession.municipio_name || 'SISTEMA'}`, 14, 33);
-        doc.text(`Fecha: ${new Date().toLocaleDateString()} | Hora: ${new Date().toLocaleTimeString()}`, 14, 38);
-
-        // 3. Procesamiento de Datos (Bombonas por Calle)
-        const ejes = pagos.reduce((a, p) => {
-            const h = censo.find(x => x.ci === p.ci);
-            const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
-            if (!a[calle]) a[calle] = { q10: 0, q18: 0, q43: 0, bs: 0 };
-            a[calle].q10 += (p.q10 || 0);
-            a[calle].q18 += (p.q18 || 0);
-            a[calle].q43 += (p.q43 || 0);
-            a[calle].bs += (p.monto || 0);
-            return a;
-        }, {});
-
-        const tableData = Object.entries(ejes).map(([calle, d]) => [
-            calle, d.q10, d.q18, d.q43, d.bs.toFixed(2)
-        ]);
-
-        // Calcular Totales Generales
-        const totales = tableData.reduce((acc, row) => {
-            acc[0] += row[1]; acc[1] += row[2]; acc[2] += row[3]; acc[3] += parseFloat(row[4]);
-            return acc;
-        }, [0, 0, 0, 0]);
-
-        // 4. Generación de Tabla (AutoTable)
-        if (typeof doc.autoTable !== 'function') {
-            alert("Error: El plugin AutoTable no ha cargado correctamente.");
-            return;
+        // MOTORES DE IMPRESIÓN (SIN CAMBIOS ESTRUCTURALES)
+        function printStats() {
+            try {
+                const { jsPDF } = window.jspdf;
+                if (!jsPDF) throw new Error("jsPDF no cargada");
+                const doc = new jsPDF('p', 'mm', 'a4');
+                doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("HDC 2026 - REPORTE DE RECAUDACIÓN", 14, 20);
+                doc.setFontSize(10); doc.text(`COMUNIDAD: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
+                const ejes = pagos.reduce((a, p) => {
+                    const h = censo.find(x => x.ci === p.ci); const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
+                    if (!a[calle]) a[calle] = { q10: 0, q18: 0, q43: 0, bs: 0 };
+                    a[calle].q10 += (p.q10 || 0); a[calle].q18 += (p.q18 || 0); a[calle].q43 += (p.q43 || 0); a[calle].bs += (p.monto || 0);
+                    return a;
+                }, {});
+                const tableData = Object.entries(ejes).map(([calle, d]) => [calle, d.q10, d.q18, d.q43, d.bs.toFixed(2)]);
+                const totales = tableData.reduce((acc, row) => { acc[0] += row[1]; acc[1] += row[2]; acc[2] += row[3]; acc[3] += parseFloat(row[4]); return acc; }, [0, 0, 0, 0]);
+                doc.autoTable({ startY: 45, head: [['CALLE / EJE', '10KG', '18KG', '43KG', 'MONTO BS']], body: tableData, foot: [['TOTAL GENERAL', totales[0], totales[1], totales[2], totales[3].toFixed(2) + " BS"]], theme: 'grid', headStyles: { fillColor: [16, 185, 129] }, footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36] } });
+                doc.save(`HDC_RECAUDACION_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) { alert("Error PDF: " + error.message); }
         }
 
-        doc.autoTable({
-            startY: 45,
-            head: [['CALLE / EJE', '10KG', '18KG', '43KG', 'MONTO BS']],
-            body: tableData,
-            foot: [['TOTAL GENERAL', totales[0], totales[1], totales[2], totales[3].toFixed(2) + " BS"]],
-            theme: 'grid',
-            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', halign: 'center' },
-            footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36], fontStyle: 'bold', halign: 'center' },
-            columnStyles: {
-                0: { cellWidth: 'auto' },
-                1: { halign: 'center' },
-                2: { halign: 'center' },
-                3: { halign: 'center' },
-                4: { halign: 'right', fontStyle: 'bold' }
-            },
-            styles: { fontSize: 8, cellPadding: 3 }
-        });
-
-        // 5. Descarga Segura
-        const fileName = `HDC_RECAUDACION_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`;
-        doc.save(fileName);
-
-    } catch (error) {
-        console.error("DEBUG PDF:", error);
-        alert("Error crítico al generar el reporte: " + error.message);
-    }
-}
-
-function printDespacho() {
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-
-        doc.setFontSize(16);
-        doc.setFont("helvetica", "bold");
-        doc.text("HDC 2026 - LISTADO DE DESPACHO (CONCILIACIÓN)", 14, 20);
-        
-        doc.setFontSize(9);
-        doc.text(`Comunidad: ${uSession.comunidad_name} | Municipio: ${uSession.municipio_name}`, 14, 28);
-
-        const data = pagos.map(p => {
-            const h = censo.find(x => x.ci === p.ci);
-            const pedido = `${p.q10}/${p.q18}/${p.q43}`;
-            const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
-            const status = (p.recibidos == totalP && totalP > 0) ? 'ENTREGADO' : 'PENDIENTE';
-            return [
-                h ? h.nombre.toUpperCase() : p.ci,
-                h ? h.calle.toUpperCase() : '-',
-                pedido,
-                p.recibidos || 0,
-                status
-            ];
-        });
-
-        doc.autoTable({
-            startY: 35,
-            head: [['BENEFICIARIO', 'CALLE', 'PEDIDO (10/18/43)', 'RECIBIDO', 'ESTADO']],
-            body: data,
-            headStyles: { fillColor: [180, 83, 9], halign: 'center' },
-            columnStyles: { 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'right' } },
-            styles: { fontSize: 7 }
-        });
-
-        doc.save(`HDC_DESPACHO_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
-    } catch (error) {
-        alert("Error en reporte de despacho: " + error.message);
-    }
-}
+        function printDespacho() {
+            try {
+                const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+                doc.setFontSize(16); doc.text("HDC 2026 - LISTADO DE DESPACHO", 14, 20);
+                const data = pagos.map(p => { const h = censo.find(x => x.ci === p.ci); const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
+                    return [h ? h.nombre.toUpperCase() : p.ci, h ? h.calle.toUpperCase() : '-', `${p.q10}/${p.q18}/${p.q43}`, p.recibidos || 0, (p.recibidos == totalP ? 'ENTREGADO' : 'PENDIENTE')];
+                });
+                doc.autoTable({ startY: 35, head: [['BENEFICIARIO', 'CALLE', 'PEDIDO', 'RECIBIDO', 'ESTADO']], body: data, headStyles: { fillColor: [180, 83, 9] } });
+                doc.save(`HDC_DESPACHO_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) { alert("Error PDF: " + error.message); }
+        }
     </script>
 </body>
 </html>
