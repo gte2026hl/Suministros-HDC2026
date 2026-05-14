@@ -271,60 +271,79 @@
             document.getElementById('h-list').innerHTML=pagos.map(p=>`<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-fade-in"><div><p class="text-[10px] font-black text-white uppercase">${censo.find(h=>h.ci===p.ci)?.nombre||p.ci}</p><p class="text-[8px] text-slate-500">REF: ${p.referencia} | ${new Date(p.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><p class="text-emerald-500 font-black text-[11px]">${p.monto.toFixed(2)} BS</p></div>`).join('');
         }
 
-// --- MOTOR DE IMPRESIÓN A4 REFORZADO ---
+// --- MOTOR DE IMPRESIÓN A4 PROFESIONAL (REPARADO) ---
 function printStats() {
     try {
+        // 1. Verificación de Librerías
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
+        if (!jsPDF) throw new Error("Librería jsPDF no encontrada");
 
-        // Título y Encabezado
+        const doc = new jsPDF('p', 'mm', 'a4');
+        
+        // 2. Configuración de Títulos
         doc.setFontSize(18);
         doc.setFont("helvetica", "bold");
         doc.text("HDC 2026 - REPORTE DE RECAUDACIÓN", 14, 20);
         
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text(`Comunidad: ${uSession.comunidad_name} | Municipio: ${uSession.municipio_name}`, 14, 28);
-        doc.text(`Fecha de Emisión: ${new Date().toLocaleDateString()}`, 14, 33);
+        doc.text(`Comunidad: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
+        doc.text(`Municipio/Sector: ${uSession.municipio_name || 'SISTEMA'}`, 14, 33);
+        doc.text(`Fecha: ${new Date().toLocaleDateString()} | Hora: ${new Date().toLocaleTimeString()}`, 14, 38);
 
-        // Procesar data por calle
+        // 3. Procesamiento de Datos (Bombonas por Calle)
         const ejes = pagos.reduce((a, p) => {
-            const c = censo.find(h => h.ci === p.ci)?.calle || 'SIN CALLE';
-            if (!a[c]) a[c] = { q10: 0, q18: 0, q43: 0, bs: 0 };
-            a[c].q10 += p.q10 || 0;
-            a[c].q18 += p.q18 || 0;
-            a[c].q43 += p.q43 || 0;
-            a[c].bs += p.monto || 0;
+            const h = censo.find(x => x.ci === p.ci);
+            const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
+            if (!a[calle]) a[calle] = { q10: 0, q18: 0, q43: 0, bs: 0 };
+            a[calle].q10 += (p.q10 || 0);
+            a[calle].q18 += (p.q18 || 0);
+            a[calle].q43 += (p.q43 || 0);
+            a[calle].bs += (p.monto || 0);
             return a;
         }, {});
 
-        const tableData = Object.entries(ejes).map(([c, d]) => [
-            c, d.q10, d.q18, d.q43, d.bs.toFixed(2)
+        const tableData = Object.entries(ejes).map(([calle, d]) => [
+            calle, d.q10, d.q18, d.q43, d.bs.toFixed(2)
         ]);
 
-        const totalG = tableData.reduce((a, b) => ({
-            q10: a.q10 + b[1], q18: a.q18 + b[2], q43: a.q43 + b[3], bs: a.bs + parseFloat(b[4])
-        }), { q10: 0, q18: 0, q43: 0, bs: 0 });
+        // Calcular Totales Generales
+        const totales = tableData.reduce((acc, row) => {
+            acc[0] += row[1]; acc[1] += row[2]; acc[2] += row[3]; acc[3] += parseFloat(row[4]);
+            return acc;
+        }, [0, 0, 0, 0]);
 
-        // Generar Tabla con Totales
+        // 4. Generación de Tabla (AutoTable)
+        if (typeof doc.autoTable !== 'function') {
+            alert("Error: El plugin AutoTable no ha cargado correctamente.");
+            return;
+        }
+
         doc.autoTable({
-            startY: 40,
-            head: [['CALLE', '10KG', '18KG', '43KG', 'TOTAL BS']],
+            startY: 45,
+            head: [['CALLE / EJE', '10KG', '18KG', '43KG', 'MONTO BS']],
             body: tableData,
-            foot: [['TOTAL GENERAL', totalG.q10, totalG.q18, totalG.q43, totalG.bs.toFixed(2) + " Bs"]],
+            foot: [['TOTAL GENERAL', totales[0], totales[1], totales[2], totales[3].toFixed(2) + " BS"]],
             theme: 'grid',
-            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
-            footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36], fontStyle: 'bold' },
-            styles: { fontSize: 9, cellPadding: 3 }
+            headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', halign: 'center' },
+            footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36], fontStyle: 'bold', halign: 'center' },
+            columnStyles: {
+                0: { cellWidth: 'auto' },
+                1: { halign: 'center' },
+                2: { halign: 'center' },
+                3: { halign: 'center' },
+                4: { halign: 'right', fontStyle: 'bold' }
+            },
+            styles: { fontSize: 8, cellPadding: 3 }
         });
 
-        // Limpiar nombre de archivo (evita errores de descarga)
-        const safeName = uSession.comunidad_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        doc.save(`recaudacion_${safeName}.pdf`);
+        // 5. Descarga Segura
+        const fileName = `HDC_RECAUDACION_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`;
+        doc.save(fileName);
 
     } catch (error) {
-        console.error("Error en PDF:", error);
-        alert("Error al generar el PDF. Verifica que la consola no muestre errores de librería.");
+        console.error("DEBUG PDF:", error);
+        alert("Error crítico al generar el reporte: " + error.message);
     }
 }
 
@@ -333,33 +352,37 @@ function printDespacho() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
 
-        doc.setFontSize(18);
-        doc.text("HDC 2026 - CONCILIACIÓN DE DESPACHO", 14, 20);
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("HDC 2026 - LISTADO DE DESPACHO (CONCILIACIÓN)", 14, 20);
         
+        doc.setFontSize(9);
+        doc.text(`Comunidad: ${uSession.comunidad_name} | Municipio: ${uSession.municipio_name}`, 14, 28);
+
         const data = pagos.map(p => {
             const h = censo.find(x => x.ci === p.ci);
-            const t = (p.q10 || 0) + (p.q18 || 0) + (p.q43 || 0);
-            const status = (p.recibidos == t && t > 0) ? 'CONCILIADO' : 'PENDIENTE';
+            const pedido = `${p.q10}/${p.q18}/${p.q43}`;
+            const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
+            const status = (p.recibidos == totalP && totalP > 0) ? 'ENTREGADO' : 'PENDIENTE';
             return [
-                h?.nombre || p.ci,
-                h?.calle || '-',
-                `${p.q10}/${p.q18}/${p.q43}`,
+                h ? h.nombre.toUpperCase() : p.ci,
+                h ? h.calle.toUpperCase() : '-',
+                pedido,
                 p.recibidos || 0,
                 status
             ];
         });
 
         doc.autoTable({
-            startY: 30,
-            head: [['BENEFICIARIO', 'CALLE', 'PEDIDO', 'RECIBIDO', 'ESTADO']],
+            startY: 35,
+            head: [['BENEFICIARIO', 'CALLE', 'PEDIDO (10/18/43)', 'RECIBIDO', 'ESTADO']],
             body: data,
-            headStyles: { fillColor: [180, 83, 9] },
-            styles: { fontSize: 8 }
+            headStyles: { fillColor: [180, 83, 9], halign: 'center' },
+            columnStyles: { 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'right' } },
+            styles: { fontSize: 7 }
         });
 
-        const safeName = uSession.comunidad_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-        doc.save(`despacho_${safeName}.pdf`);
-        
+        doc.save(`HDC_DESPACHO_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
     } catch (error) {
         alert("Error en reporte de despacho: " + error.message);
     }
