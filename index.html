@@ -303,7 +303,7 @@
                 const { jsPDF } = window.jspdf;
                 if (!jsPDF) throw new Error("jsPDF no cargada");
                 const doc = new jsPDF('p', 'mm', 'a4');
-                doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("HDC 2026 - REPORTE DE RECAUDACIÓN", 14, 20);
+                doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("HDC Design & Tech- REPORTE DE RECAUDACIÓN", 14, 20);
                 doc.setFontSize(10); doc.text(`COMUNIDAD: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
                 const ejes = pagos.reduce((a, p) => {
                     const h = censo.find(x => x.ci === p.ci); const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
@@ -321,7 +321,7 @@
         function printDespacho() {
             try {
                 const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
-                doc.setFontSize(16); doc.text("HDC 2026 - LISTADO DE DESPACHO", 14, 20);
+                doc.setFontSize(16); doc.text("HDC Design & Tech- LISTADO DE DESPACHO", 14, 20);
                 const data = pagos.map(p => { const h = censo.find(x => x.ci === p.ci); const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
                     return [h ? h.nombre.toUpperCase() : p.ci, h ? h.calle.toUpperCase() : '-', `${p.q10}/${p.q18}/${p.q43}`, p.recibidos || 0, (p.recibidos == totalP ? 'ENTREGADO' : 'PENDIENTE')];
                 });
