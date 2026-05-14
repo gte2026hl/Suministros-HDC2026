@@ -190,47 +190,25 @@
             ['gestion', 'stats', 'despacho'].forEach(s => { const el = document.getElementById(`nav-${s}`); if(el){el.classList.remove('tab-active'); el.classList.add('text-slate-500');} });
             document.getElementById(`nav-${id}`).classList.add('tab-active'); document.getElementById(`nav-${id}`).classList.remove('text-slate-500');
             
-            const v = document.getElementById('app-view');
-            if(id === 'gestion') {
-                v.innerHTML = `
-                <div class="space-y-6 fade-in">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <div class="lg:col-span-4 glass p-6 rounded-3xl border-l-4 border-amber-500">
-                            <div class="flex justify-between items-center mb-4"><p class="text-[10px] font-black text-amber-500 uppercase italic">Precios Ciclo</p><button onclick="guardarPrecios()" class="bg-emerald-600 px-3 py-1 rounded-full text-[8px] font-black uppercase text-white">Fijar</button></div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 block">10kg</label><input type="number" id="p10" value="${config.p10}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs text-center outline-none"></div>
-                                <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 block">18kg</label><input type="number" id="p18" value="${config.p18}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs text-center outline-none"></div>
-                                <div class="bg-slate-950 p-2 rounded-xl text-center"><label class="text-[7px] text-slate-500 block">43kg</label><input type="number" id="p43" value="${config.p43}" oninput="validarCobro()" class="bg-transparent w-full font-black text-xs text-center outline-none"></div>
-                            </div>
-                        </div>
-                        <div id="tot-cont" class="lg:col-span-8 grid grid-cols-4 gap-2"></div>
-                    </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        <div class="lg:col-span-8 glass p-10 rounded-[2.5rem] space-y-8">
-                            <div class="flex justify-between items-start"><h3 class="text-xl font-black italic uppercase tracking-tighter">Validador Tactical .01</h3><div id="status-val" class="px-5 py-2 rounded-full text-[9px] font-black bg-slate-800 text-slate-500 uppercase tracking-widest">Esperando Cédula</div></div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div class="space-y-6">
-                                    <input type="number" id="ci" oninput="lookCI(this.value)" class="w-full bg-slate-950 border border-slate-800 p-5 rounded-2xl text-2xl mono text-white outline-none focus:border-amber-500" placeholder="00000000">
-                                    <div id="v-name" class="text-emerald-400 font-black uppercase text-[11px] italic min-h-[1.5rem]"></div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <input type="text" id="ref" class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-white uppercase outline-none text-xs" placeholder="REFERENCIA">
-                                        <input type="number" id="m-ref" oninput="validarCobro()" class="bg-slate-900 p-4 rounded-xl border border-slate-700 font-black text-white outline-none text-xs" placeholder="MONTO BS">
-                                    </div>
-                                </div>
-                                <div class="bg-slate-950/40 p-8 rounded-3xl border border-white/5 space-y-6">
-                                    <div class="grid grid-cols-3 gap-3">
-                                        <div class="text-center"><span class="text-[8px] font-bold opacity-30 block mb-1 uppercase">10kg</span><input type="number" id="q10" value="0" oninput="validarCobro()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black text-emerald-500"></div>
-                                        <div class="text-center"><span class="text-[8px] font-bold opacity-30 block mb-1 uppercase">18kg</span><input type="number" id="q18" value="0" oninput="validarCobro()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black text-emerald-500"></div>
-                                        <div class="text-center"><span class="text-[8px] font-bold opacity-30 block mb-1 uppercase">43kg</span><input type="number" id="q43" value="0" oninput="validarCobro()" class="w-full bg-slate-900 p-3 rounded-xl text-center font-black text-emerald-500"></div>
-                                    </div>
-                                    <div class="pt-6 border-t border-slate-800 flex justify-between items-center"><span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Requerido:</span><span id="v-calc" class="text-3xl font-black mono text-white">0.00</span></div>
-                                    <button onclick="cobrar()" id="v-btn" disabled class="w-full bg-slate-800 text-slate-500 py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all">Registrar Transacción</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="lg:col-span-4 glass p-8 rounded-[2.5rem] flex flex-col"><h4 class="text-[10px] font-black uppercase mb-6 flex justify-between"><span>Historial Activo</span><span id="p-count" class="text-emerald-500">0</span></h4><div id="h-list" class="space-y-4 overflow-y-auto max-h-[500px]"></div></div>
-                    </div>
-                </div>`;
+document.getElementById('tot-cont').innerHTML=`
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+        <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500">
+            <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">10kg</p>
+            <p class="text-lg font-black">${t.c10}</p>
+        </div>
+        <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500">
+            <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">18kg</p>
+            <p class="text-lg font-black">${t.c18}</p>
+        </div>
+        <div class="glass p-3 rounded-2xl border-l-4 border-emerald-500">
+            <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">43kg</p>
+            <p class="text-lg font-black">${t.c43}</p>
+        </div>
+        <div class="glass p-3 rounded-2xl border-l-4 border-blue-500">
+            <p class="text-[7px] font-black text-slate-500 uppercase tracking-widest">Total Bs</p>
+            <p class="text-lg font-black">${t.bs.toFixed(2)}</p>
+        </div>
+    </div>`;
                 updateJefeUI();
             } else if(id === 'stats') {
                 const paid = pagos.map(p => p.ci); const pend = censo.filter(h => !paid.includes(h.ci));
