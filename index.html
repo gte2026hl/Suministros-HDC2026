@@ -47,19 +47,20 @@
     </div>
 
     <div id="main-app" class="hidden min-h-screen flex flex-col">
-        <nav class="w-full h-16 glass sticky top-0 z-50 flex items-center justify-between px-2 sm:px-6 border-b border-slate-800 no-print">
-            <div class="flex items-center gap-4">
-                <div id="sello-nav" class="sello-bg w-10 h-10 rounded flex items-center justify-center transform -rotate-2"><span class="sello-text text-[7px]">HDC<br>2026</span></div>
-                <div id="info-comunidad" class="leading-none border-l border-slate-800 pl-4 ml-2">
-                    <h2 id="nav-comunidad" class="text-[10px] font-black uppercase text-slate-200 truncate max-w-[150px] sm:max-w-none">---</h2>
-                    <p id="nav-sector" class="text-[8px] text-emerald-500 font-bold uppercase mt-1 tracking-widest">---</p>
-                </div>
+        <nav class="w-full h-auto glass sticky top-0 z-50 flex flex-col px-4 border-b border-slate-800 no-print">
+    <div class="flex items-center justify-between w-full pt-3 pb-1">
+        <div class="flex items-center gap-2">
+            <div id="sello-nav" class="sello-bg w-8 h-8 rounded flex items-center justify-center transform -rotate-2">
+                <span class="sello-text text-[6px]">HDC<br>2026</span>
             </div>
-            <div id="nav-container" class="flex gap-2 h-full items-center"></div>
-        </nav>
-        <main class="p-6 flex-grow space-y-6" id="app-view"></main>
-        <footer class="p-8 text-center text-slate-700 text-[9px] font-black uppercase tracking-[0.5em] glass border-t border-slate-900 no-print">Copyright©2026 HDC Design & Tech</footer>
+            <h2 id="nav-comunidad" class="text-[10px] font-black uppercase text-slate-200 truncate max-w-[140px]">---</h2>
+        </div>
+        <p id="nav-sector" class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest">---</p>
     </div>
+    
+    <div id="nav-container" class="flex justify-between items-center w-full h-10 border-t border-slate-900/50 mt-1">
+        </div>
+</nav>
 
     <script>
         const SB_URL = "https://wokszafewnnsmmhsvsqf.supabase.co";
