@@ -288,82 +288,37 @@
             document.getElementById('h-list').innerHTML=pagos.map(p=>`<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-800 flex justify-between items-center animate-fade-in"><div><p class="text-[10px] font-black text-white uppercase">${censo.find(h=>h.ci===p.ci)?.nombre||p.ci}</p><p class="text-[8px] text-slate-500">REF: ${p.referencia} | ${new Date(p.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</p></div><p class="text-emerald-500 font-black text-[11px]">${p.monto.toFixed(2)} BS</p></div>`).join('');
         }
 
-        // REEMPLAZO QUIRÚRGICO PARA ESTADÍSTICAS
-function printStats() {
-    try {
-        const { jsPDF } = window.jspdf;
-        if (!jsPDF) return alert("Cargando librerías... reintente en 2 segundos.");
-        
-        const doc = new jsPDF('p', 'mm', 'a4');
-        doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("HDC Design & Tech- REPORTE DE RECAUDACIÓN", 14, 20);
-        doc.setFontSize(10); doc.text(`COMUNIDAD: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
-        
-        const ejes = pagos.reduce((a, p) => {
-            const h = censo.find(x => x.ci === p.ci); const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
-            if (!a[calle]) a[calle] = { q10: 0, q18: 0, q43: 0, bs: 0 };
-            a[calle].q10 += (p.q10 || 0); a[calle].q18 += (p.q18 || 0); a[calle].q43 += (p.q43 || 0); a[calle].bs += (p.monto || 0);
-            return a;
-        }, {});
+        function printStats() {
+            try {
+                const { jsPDF } = window.jspdf;
+                if (!jsPDF) throw new Error("jsPDF no cargada");
+                const doc = new jsPDF('p', 'mm', 'a4');
+                doc.setFontSize(18); doc.setFont("helvetica", "bold"); doc.text("HDC Design & Tech- REPORTE DE RECAUDACIÓN", 14, 20);
+                doc.setFontSize(10); doc.text(`COMUNIDAD: ${uSession.comunidad_name.toUpperCase()}`, 14, 28);
+                const ejes = pagos.reduce((a, p) => {
+                    const h = censo.find(x => x.ci === p.ci); const calle = h ? h.calle.toUpperCase() : 'DESCONOCIDA';
+                    if (!a[calle]) a[calle] = { q10: 0, q18: 0, q43: 0, bs: 0 };
+                    a[calle].q10 += (p.q10 || 0); a[calle].q18 += (p.q18 || 0); a[calle].q43 += (p.q43 || 0); a[calle].bs += (p.monto || 0);
+                    return a;
+                }, {});
+                const tableData = Object.entries(ejes).map(([calle, d]) => [calle, d.q10, d.q18, d.q43, d.bs.toFixed(2)]);
+                const totales = tableData.reduce((acc, row) => { acc[0] += row[1]; acc[1] += row[2]; acc[2] += row[3]; acc[3] += parseFloat(row[4]); return acc; }, [0, 0, 0, 0]);
+                doc.autoTable({ startY: 45, head: [['CALLE / EJE', '10KG', '18KG', '43KG', 'MONTO BS']], body: tableData, foot: [['TOTAL GENERAL', totales[0], totales[1], totales[2], totales[3].toFixed(2) + " BS"]], theme: 'grid', headStyles: { fillColor: [16, 185, 129] }, footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36] } });
+                doc.save(`HDC_RECAUDACION_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) { alert("Error PDF: " + error.message); }
+        }
 
-        const tableData = Object.entries(ejes).map(([calle, d]) => [calle, d.q10, d.q18, d.q43, d.bs.toFixed(2)]);
-        const totales = tableData.reduce((acc, row) => { acc[0] += row[1]; acc[1] += row[2]; acc[2] += row[3]; acc[3] += parseFloat(row[4]); return acc; }, [0, 0, 0, 0]);
-
-        doc.autoTable({ 
-            startY: 45, 
-            head: [['CALLE / EJE', '10KG', '18KG', '43KG', 'MONTO BS']], 
-            body: tableData, 
-            foot: [['TOTAL GENERAL', totales[0], totales[1], totales[2], totales[3].toFixed(2) + " BS"]], 
-            theme: 'grid', 
-            headStyles: { fillColor: [16, 185, 129] }, 
-            footStyles: { fillColor: [15, 23, 42], textColor: [251, 191, 36] } 
-        });
-
-        ejecutarSalidaPDF(doc, `HDC_RECAUDACION_${uSession.comunidad_name}`);
-    } catch (error) { alert("Error PDF: " + error.message); }
-}
-
-// REEMPLAZO QUIRÚRGICO PARA DESPACHO
-function printDespacho() {
-    try {
-        const { jsPDF } = window.jspdf;
-        if (!jsPDF) return alert("Cargando librerías...");
-        
-        const doc = new jsPDF('p', 'mm', 'a4');
-        doc.setFontSize(16); doc.text("HDC Design & Tech- LISTADO DE DESPACHO", 14, 20);
-        
-        const data = pagos.map(p => { 
-            const h = censo.find(x => x.ci === p.ci); 
-            const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
-            return [h ? h.nombre.toUpperCase() : p.ci, h ? h.calle.toUpperCase() : '-', `${p.q10}/${p.q18}/${p.q43}`, p.recibidos || 0, (p.recibidos == totalP ? 'ENTREGADO' : 'PENDIENTE')];
-        });
-
-        doc.autoTable({ 
-            startY: 35, 
-            head: [['BENEFICIARIO', 'CALLE', 'PEDIDO', 'RECIBIDO', 'ESTADO']], 
-            body: data, 
-            headStyles: { fillColor: [180, 83, 9] } 
-        });
-
-        ejecutarSalidaPDF(doc, `HDC_DESPACHO_${uSession.comunidad_name}`);
-    } catch (error) { alert("Error PDF: " + error.message); }
-}
-
-// ESTA ES LA FUNCIÓN CLAVE PARA APK / MÓVILES
-function ejecutarSalidaPDF(doc, filename) {
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    
-    // Crear un enlace invisible y forzar clic
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename + ".pdf";
-    document.body.appendChild(link);
-    link.click();
-    
-    // Fallback para algunas APKs: Abrir en pestaña nueva
-    setTimeout(() => {
-        window.open(url, '_blank');
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }, 100);
-}
+        function printDespacho() {
+            try {
+                const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4');
+                doc.setFontSize(16); doc.text("HDC Design & Tech- LISTADO DE DESPACHO", 14, 20);
+                const data = pagos.map(p => { const h = censo.find(x => x.ci === p.ci); const totalP = (p.q10||0) + (p.q18||0) + (p.q43||0);
+                    return [h ? h.nombre.toUpperCase() : p.ci, h ? h.calle.toUpperCase() : '-', `${p.q10}/${p.q18}/${p.q43}`, p.recibidos || 0, (p.recibidos == totalP ? 'ENTREGADO' : 'PENDIENTE')];
+                });
+                doc.autoTable({ startY: 35, head: [['BENEFICIARIO', 'CALLE', 'PEDIDO', 'RECIBIDO', 'ESTADO']], body: data, headStyles: { fillColor: [180, 83, 9] } });
+                doc.save(`HDC_DESPACHO_${uSession.comunidad_name.replace(/\s+/g, '_')}.pdf`);
+            } catch (error) { alert("Error PDF: " + error.message); }
+        }
+    </script>
+</body>
+</html>
