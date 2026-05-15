@@ -47,18 +47,18 @@
     </div>
 
     <div id="main-app" class="hidden min-h-screen flex flex-col">
-          <nav class="w-full glass sticky top-0 z-50 flex flex-col px-8 py-4 border-b border-slate-800 no-print gap-4">
-    <!-- Fila Superior: Nombres -->
-    <div class="flex justify-between items-center w-full">
-        <h2 id="nav-comunidad" class="text-[11px] font-black uppercase text-white italic tracking-tighter">---</h2>
-        <p id="nav-sector" class="text-[9px] text-emerald-500 font-black uppercase tracking-[0.2em]">---</p>
+        <!-- NAVEGACIÓN MODIFICADA QUIRÚRGICAMENTE -->
+        <nav class="w-full glass sticky top-0 z-50 flex flex-col px-6 py-4 border-b border-slate-800 no-print gap-4">
+            <div class="flex justify-between items-center w-full">
+                <h2 id="nav-comunidad" class="text-[11px] font-black uppercase text-slate-200 italic tracking-tighter">---</h2>
+                <p id="nav-sector" class="text-[9px] text-emerald-500 font-black uppercase tracking-[0.2em]">---</p>
+            </div>
+            <div id="nav-container" class="flex items-center justify-between w-full border-t border-white/5 pt-2"></div>
+        </nav>
+
+        <main class="p-6 flex-grow space-y-6" id="app-view"></main>
+        <footer class="p-8 text-center text-slate-700 text-[9px] font-black uppercase tracking-[0.5em] glass border-t border-slate-900 no-print">Copyright©2026 HDC Design & Tech</footer>
     </div>
-    
-    <!-- Fila Inferior: Botones e Iconos -->
-    <div id="nav-container" class="flex justify-around items-center w-full border-t border-white/5 pt-2">
-        <!-- Los botones se inyectan aquí vía JS -->
-    </div>
-</nav>
 
     <script>
         const SB_URL = "https://wokszafewnnsmmhsvsqf.supabase.co";
@@ -117,20 +117,16 @@
         }
 
         function renderNav() {
-            const esJefe = uSession.role === 'JEFE';
-            document.getElementById('sello-nav').style.display = esJefe ? 'none' : 'flex';
-            document.getElementById('info-comunidad').className = esJefe ? "leading-none" : "leading-none border-l border-slate-800 pl-4 ml-2";
-
             const c = document.getElementById('nav-container');
             if(uSession.role === 'MASTER') {
-                c.innerHTML = `<button onclick="showMaster()" class="h-full px-4 text-[9px] font-black uppercase tab-active">Admin Central</button>`;
+                c.innerHTML = `<button onclick="showMaster()" class="px-4 py-2 text-[10px] font-black uppercase tab-active">Admin Central</button>`;
             } else {
                 c.innerHTML = `
-                    <button onclick="showSection('gestion')" id="nav-gestion" class="h-full px-4 text-[9px] font-black uppercase tab-active">Cobros</button>
-                    <button onclick="showSection('stats')" id="nav-stats" class="h-full px-4 text-[9px] font-black uppercase text-slate-500">Estadísticas</button>
-                    <button onclick="showSection('despacho')" id="nav-despacho" class="h-full px-4 text-[9px] font-black uppercase text-slate-500">Despacho</button>`;
+                    <button onclick="showSection('gestion')" id="nav-gestion" class="flex-1 text-center py-2 text-[9px] font-black uppercase tab-active">Cobros</button>
+                    <button onclick="showSection('stats')" id="nav-stats" class="flex-1 text-center py-2 text-[9px] font-black uppercase text-slate-500">Estadísticas</button>
+                    <button onclick="showSection('despacho')" id="nav-despacho" class="flex-1 text-center py-2 text-[9px] font-black uppercase text-slate-500">Despacho</button>`;
             }
-            c.innerHTML += `<button onclick="logout()" class="px-4 text-rose-500">✕</button>`;
+            c.innerHTML += `<button onclick="logout()" class="pl-4 pr-2 text-rose-500 font-bold text-lg leading-none">✕</button>`;
         }
 
         async function showMaster() {
